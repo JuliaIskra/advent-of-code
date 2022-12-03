@@ -2,7 +2,7 @@ import scala.io.Source
 import scala.util.{Failure, Success, Using}
 
 @main def main: Unit = {
-  println(AdventOfCode.task_2_2("src/main/resources/task_2_input.txt"))
+  println(AdventOfCode.task_3_2("src/main/resources/task_3_input.txt"))
 }
 
 object AdventOfCode {
@@ -107,6 +107,58 @@ object AdventOfCode {
       source.getLines.toList
         .map(_.split(" "))
         .map(codes => getScore((codes(0), codes(1))))
+        .sum
+    } match {
+      case Success(n) => n
+      case Failure(e) => throw new RuntimeException(e)
+    }
+  }
+
+  def task_3_1(inputFile: String): Int = {
+    Using(Source.fromFile(inputFile)) { source =>
+      source.getLines.toList
+        .map(items => {
+          val (one, two) = items.splitAt(items.length / 2)
+          val common = for {
+            a <- one
+            b <- two
+            if a == b
+          } yield a
+          common.charAt(0)
+        })
+        .map(ch =>
+          if (ch > 96) ch - 96
+          else ch - 38
+        )
+        .sum
+    } match {
+      case Success(n) => n
+      case Failure(e) => throw new RuntimeException(e)
+    }
+  }
+
+  def task_3_2(inputFile: String): Int = {
+    Using(Source.fromFile(inputFile)) { source =>
+      val lines = source.getLines.toList
+      val groups = new Array[Char](lines.size / 3)
+      var i = 0
+      var g = 0
+      while (i < lines.size) {
+        val common = for {
+          a <- lines(i)
+          b <- lines(i + 1)
+          c <- lines(i + 2)
+          if a == b && b == c
+        } yield a
+        groups(g) = common.charAt(0)
+        i = i + 3
+        g = g + 1
+      }
+      groups
+        .map(ch =>
+          if (ch > 96) ch - 96
+          else ch - 38
+        )
         .sum
     } match {
       case Success(n) => n
