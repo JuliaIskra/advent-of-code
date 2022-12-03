@@ -40,20 +40,20 @@ object AdventOfCode {
       val elvesCount = cals.partition(_.equals(""))._1.size + 1
       val elves = new Array[Int](elvesCount)
       var currentSum = 0
-      var c = 0
-      var e = 0
-      while (c < cals.size) {
-        cals(c) match {
+      var ic = 0
+      var ie = 0
+      while (ic < cals.size) {
+        cals(ic) match {
           case "" =>
-            elves(e) = currentSum
-            e = e + 1
+            elves(ie) = currentSum
+            ie = ie + 1
             currentSum = 0
           case cal =>
             currentSum = currentSum + cal.toInt
         }
-        c = c + 1
+        ic = ic + 1
       }
-      elves(e) = currentSum
+      elves(ie) = currentSum
       elves.sorted.takeRight(3).sum
     } match {
       case Success(n) => n
@@ -126,9 +126,9 @@ object AdventOfCode {
           } yield a
           common.charAt(0)
         })
-        .map(ch =>
-          if (ch > 96) ch - 96
-          else ch - 38
+        .map(c =>
+          if (c > 96) c - 96
+          else c - 38
         )
         .sum
     } match {
@@ -141,23 +141,23 @@ object AdventOfCode {
     Using(Source.fromFile(inputFile)) { source =>
       val lines = source.getLines.toList
       val groups = new Array[Char](lines.size / 3)
-      var i = 0
-      var g = 0
-      while (i < lines.size) {
+      var il = 0
+      var ig = 0
+      while (il < lines.size) {
         val common = for {
-          a <- lines(i)
-          b <- lines(i + 1)
-          c <- lines(i + 2)
+          a <- lines(il)
+          b <- lines(il + 1)
+          c <- lines(il + 2)
           if a == b && b == c
         } yield a
-        groups(g) = common.charAt(0)
-        i = i + 3
-        g = g + 1
+        groups(ig) = common.charAt(0)
+        il = il + 3
+        ig = ig + 1
       }
       groups
-        .map(ch =>
-          if (ch > 96) ch - 96
-          else ch - 38
+        .map(c =>
+          if (c > 96) c - 96
+          else c - 38
         )
         .sum
     } match {
