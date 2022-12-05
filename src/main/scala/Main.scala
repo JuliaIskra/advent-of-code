@@ -4,7 +4,7 @@ import scala.io.Source
 import scala.util.{Failure, Success, Using}
 
 @main def main: Unit = {
-  println(AdventOfCode.task_3_2("src/main/resources/task_3_input.txt"))
+  println(AdventOfCode.task_4_2("src/main/resources/task_4_input.txt"))
 }
 
 object AdventOfCode {
@@ -128,5 +128,50 @@ object AdventOfCode {
           else c - 'A' + 27
         )
         .sum
+    }.get
+
+  def task_4_1(inputFile: String): Int =
+    Using(Source.fromFile(inputFile)) { source =>
+      source.getLines
+        .map(line =>
+          for {
+            range <- line.split(",")
+            n <- range.split("-")
+          } yield n.toInt
+        )
+        .count(sections => {
+          val start1 = sections(0)
+          val end1 = sections(1)
+          val start2 = sections(2)
+          val end2 = sections(3)
+          // s1.........e1
+          //    s2...e2
+          // or
+          //    s1...e1
+          // s2.........e2
+          start1 >= start2 && end1 <= end2 || start2 >= start1 && end2 <= end1
+        })
+    }.get
+
+  def task_4_2(inputFile: String): Int =
+    Using(Source.fromFile(inputFile)) { source =>
+      source.getLines
+        .map(line =>
+          for {
+            range <- line.split(",")
+            n <- range.split("-")
+          } yield n.toInt
+        )
+        .count(sections => {
+          val start1 = sections(0)
+          val end1 = sections(1)
+          val start2 = sections(2)
+          val end2 = sections(3)
+          // overlap
+          start1 <= start2 && start2 <= end1
+            || start2 <= start1 && start1 <= end2
+            || start2 <= end1 && end1 <= end2
+            || start1 <= end2 && end2 <= end1
+        })
     }.get
 }
