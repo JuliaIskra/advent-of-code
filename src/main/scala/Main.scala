@@ -1,10 +1,12 @@
 import scala.collection.immutable.Nil
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.util.{Failure, Success, Using}
+import scala.collection.mutable.Stack
 
 @main def main: Unit = {
-  println(AdventOfCode.task_4_2("src/main/resources/task_4_input.txt"))
+  println(AdventOfCode.task_5_1("src/main/resources/task_5_input.txt"))
 }
 
 object AdventOfCode {
@@ -173,5 +175,49 @@ object AdventOfCode {
             || start2 <= end1 && end1 <= end2
             || start1 <= end2 && end2 <= end1
         })
+    }.get
+
+  def task_5_1(inputFile: String): String =
+    Using(Source.fromFile(inputFile)) { source => {
+      val lines = source.getLines.toList
+      val separator = lines.indexOf("")
+      val (stacksInput, actions) = lines.splitAt(separator)
+
+      val stacks: List[mutable.Stack[String]] = stacksInput
+        .foldRight(List[mutable.Stack[String]]())((line, stacks) => {
+          if (stacks.isEmpty) {
+            val stacksNumber = line.split("  ").map(_.trim).length
+            (0 until stacksNumber).map(_ => mutable.Stack[String]()).toList
+          } else {
+            line.foldLeft((stacks, 0))((state, c) => {
+              val (stacks, i) = state
+              if ('A' <= c && c <= 'Z') {
+                val stackNumber = (i + 3) / 4
+                stacks(stackNumber - 1).push(c.toString)
+              }
+              (stacks, i + 1)
+            })._1
+          }
+        })
+
+      actions.foreach(line => {
+        val pattern = """move (\d+) from (\d+) to (\d+)""".r
+        if (pattern.matches(line)) {
+          val (nToMove, from, to) = pattern
+            .findAllIn(line)
+            .matchData
+            .map(m => (m.group(1).toInt, m.group(2).toInt, m.group(3).toInt))
+            .toList
+            .head
+          (0 until nToMove)
+            .foreach(_ => {
+              val crate = stacks(from - 1).pop()
+              stacks(to - 1).push(crate)
+            })
+        }
+      })
+
+      stacks.map(_.pop()).reduce(_ + _)
+    }
     }.get
 }
