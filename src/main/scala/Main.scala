@@ -132,7 +132,7 @@ object AdventOfCode {
         .sum
     }.get
 
-  def task_4_1(inputFile: String): Int =
+  private def task_4_countSectionsIf(inputFile: String, p: Array[Int] => Boolean): Int =
     Using(Source.fromFile(inputFile)) { source =>
       source.getLines
         .map(line =>
@@ -141,43 +141,46 @@ object AdventOfCode {
             n <- range.split("-")
           } yield n.toInt
         )
-        .count(sections => {
-          val start1 = sections(0)
-          val end1 = sections(1)
-          val start2 = sections(2)
-          val end2 = sections(3)
-          // s1.........e1
-          //    s2...e2
-          // or
-          //    s1...e1
-          // s2.........e2
-          start1 >= start2 && end1 <= end2 || start2 >= start1 && end2 <= end1
-        })
+        .count(sections => p(sections))
     }.get
+
+  def task_4_1(inputFile: String): Int =
+    task_4_countSectionsIf(
+      inputFile,
+      sections => {
+        val start1 = sections(0)
+        val end1 = sections(1)
+        val start2 = sections(2)
+        val end2 = sections(3)
+        // s1.........e1
+        //    s2...e2
+        // or
+        //    s1...e1
+        // s2.........e2
+        start1 >= start2 && end1 <= end2 || start2 >= start1 && end2 <= end1
+      }
+    )
 
   def task_4_2(inputFile: String): Int =
-    Using(Source.fromFile(inputFile)) { source =>
-      source.getLines
-        .map(line =>
-          for {
-            range <- line.split(",")
-            n <- range.split("-")
-          } yield n.toInt
-        )
-        .count(sections => {
-          val start1 = sections(0)
-          val end1 = sections(1)
-          val start2 = sections(2)
-          val end2 = sections(3)
-          // overlap
-          start1 <= start2 && start2 <= end1
-            || start2 <= start1 && start1 <= end2
-            || start2 <= end1 && end1 <= end2
-            || start1 <= end2 && end2 <= end1
-        })
-    }.get
+    task_4_countSectionsIf(
+      inputFile,
+      sections => {
+        val start1 = sections(0)
+        val end1 = sections(1)
+        val start2 = sections(2)
+        val end2 = sections(3)
+        // overlap
+        start1 <= start2 && start2 <= end1
+        || start2 <= start1 && start1 <= end2
+        || start2 <= end1 && end1 <= end2
+        || start1 <= end2 && end2 <= end1
+      }
+    )
 
-  def task_5_1(inputFile: String): String =
+  private def task_5_rearrangeStacks(
+      inputFile: String,
+      how: (List[mutable.Stack[String]], Int, Int, Int) => Unit
+  ): String =
     Using(Source.fromFile(inputFile)) { source =>
       val lines = source.getLines.toList
       val separator = lines.indexOf("")
@@ -189,14 +192,16 @@ object AdventOfCode {
             val stacksNumber = line.split("  ").map(_.trim).length
             (0 until stacksNumber).map(_ => mutable.Stack[String]()).toList
           } else {
-            line.foldLeft((stacks, 0))((state, c) => {
-              val (stacks, i) = state
-              if ('A' <= c && c <= 'Z') {
-                val stackNumber = (i + 3) / 4
-                stacks(stackNumber - 1).push(c.toString)
-              }
-              (stacks, i + 1)
-            })._1
+            line
+              .foldLeft((stacks, 0))((state, c) => {
+                val (stacks, i) = state
+                if ('A' <= c && c <= 'Z') {
+                  val stackNumber = (i + 3) / 4
+                  stacks(stackNumber - 1).push(c.toString)
+                }
+                (stacks, i + 1)
+              })
+              ._1
           }
         })
 
@@ -208,60 +213,38 @@ object AdventOfCode {
           .map(m => (m.group(1).toInt, m.group(2).toInt, m.group(3).toInt))
           .toList
           .head
+        how(stacks, nToMove, from, to)
+      })
+
+      stacks.map(_.pop()).reduce(_ + _)
+    }.get
+
+  def task_5_1(inputFile: String): String =
+    task_5_rearrangeStacks(
+      inputFile,
+      (stacks, nToMove, from, to) =>
         (0 until nToMove)
           .foreach(_ => {
             val toMove = stacks(from - 1).pop()
             stacks(to - 1).push(toMove)
           })
-      })
-
-      stacks.map(_.pop()).reduce(_ + _)
-    }.get
+    )
 
   def task_5_2(inputFile: String): String =
-    Using(Source.fromFile(inputFile)) { source =>
-      val lines = source.getLines.toList
-      val separator = lines.indexOf("")
-      val (stacksInput, actions) = (lines.take(separator), lines.drop(separator + 1))
-
-      val stacks: List[mutable.Stack[String]] = stacksInput
-        .foldRight(List[mutable.Stack[String]]())((line, stacks) => {
-          if (stacks.isEmpty) {
-            val stacksNumber = line.split("  ").map(_.trim).length
-            (0 until stacksNumber).map(_ => mutable.Stack[String]()).toList
-          } else {
-            line.foldLeft((stacks, 0))((state, c) => {
-              val (stacks, i) = state
-              if ('A' <= c && c <= 'Z') {
-                val stackNumber = (i + 3) / 4
-                stacks(stackNumber - 1).push(c.toString)
-              }
-              (stacks, i + 1)
-            })._1
-          }
-        })
-
-      actions.foreach(line => {
-        val pattern = """move (\d+) from (\d+) to (\d+)""".r
-        val (nToMove, from, to) = pattern
-          .findAllIn(line)
-          .matchData
-          .map(m => (m.group(1).toInt, m.group(2).toInt, m.group(3).toInt))
-          .toList
-          .head
+    task_5_rearrangeStacks(
+      inputFile,
+      (stacks, nToMove, from, to) =>
         val toMove = new Array[String](nToMove)
         (0 until nToMove)
           .foreach(i => toMove(i) = stacks(from - 1).pop())
         (nToMove until 0 by -1)
           .foreach(i => stacks(to - 1).push(toMove(i - 1)))
-      })
+    )
 
-      stacks.map(_.pop()).reduce(_ + _)
-    }.get
-
-  private def task_6_calcMarker(inputFile: String, markerSize: Int): Int=
+  private def task_6_getMarkerEnd(inputFile: String, markerSize: Int): Int =
     Using(Source.fromFile(inputFile)) { source =>
-      source.getLines.next()
+      source.getLines
+        .next()
         .foldLeft(("", 0))((state, c) => {
           val (marker, i) = state
           if (marker.length < markerSize) {
@@ -273,12 +256,13 @@ object AdventOfCode {
               (marker.substring(1) + c, i + 1)
             }
           }
-        })._2
+        })
+        ._2
     }.get
 
   def task_6_1(inputFile: String): Int =
-    task_6_calcMarker(inputFile, 4)
+    task_6_getMarkerEnd(inputFile, 4)
 
   def task_6_2(inputFile: String): Int =
-    task_6_calcMarker(inputFile, 14)
+    task_6_getMarkerEnd(inputFile, 14)
 }
