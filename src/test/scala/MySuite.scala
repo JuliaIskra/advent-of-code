@@ -60,4 +60,64 @@ class MySuite extends munit.FunSuite {
     val result = AdventOfCode.task_5_2(inputFile)
     assertEquals(result, "MCD")
   }
+
+  test("task 6.1 example 1") {
+    val inputFile = "src/test/resources/task_6_example_1.txt"
+    val result = AdventOfCode.task_6_1(inputFile)
+    assertEquals(result, 7)
+  }
+
+  test("task 6.1 example 2") {
+    val inputFile = "src/test/resources/task_6_example_2.txt"
+    val result = AdventOfCode.task_6_1(inputFile)
+    assertEquals(result, 5)
+  }
+
+  test("task 6.1 example 3") {
+    val inputFile = "src/test/resources/task_6_example_3.txt"
+    val result = AdventOfCode.task_6_1(inputFile)
+    assertEquals(result, 6)
+  }
+
+  test("task 6.1 example 4") {
+    val inputFile = "src/test/resources/task_6_example_4.txt"
+    val result = AdventOfCode.task_6_1(inputFile)
+    assertEquals(result, 10)
+  }
+
+  test("task 6.1 example 5") {
+    val inputFile = "src/test/resources/task_6_example_5.txt"
+    val result = AdventOfCode.task_6_1(inputFile)
+    assertEquals(result, 11)
+  }
+
+  test("task 6.2 example 1") {
+    val inputFile = "src/test/resources/task_6_example_1.txt"
+    val result = AdventOfCode.task_6_2(inputFile)
+    assertEquals(result, 19)
+  }
+
+  test("task 6.2 example 2") {
+    val inputFile = "src/test/resources/task_6_example_2.txt"
+    val result = AdventOfCode.task_6_2(inputFile)
+    assertEquals(result, 23)
+  }
+
+  test("task 6.2 example 3") {
+    val inputFile = "src/test/resources/task_6_example_3.txt"
+    val result = AdventOfCode.task_6_2(inputFile)
+    assertEquals(result, 23)
+  }
+
+  test("task 6.2 example 4") {
+    val inputFile = "src/test/resources/task_6_example_4.txt"
+    val result = AdventOfCode.task_6_2(inputFile)
+    assertEquals(result, 29)
+  }
+
+  test("task 6.2 example 5") {
+    val inputFile = "src/test/resources/task_6_example_5.txt"
+    val result = AdventOfCode.task_6_2(inputFile)
+    assertEquals(result, 26)
+  }
 }

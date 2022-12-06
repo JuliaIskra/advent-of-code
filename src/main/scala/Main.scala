@@ -6,7 +6,7 @@ import scala.util.{Failure, Success, Using}
 import scala.collection.mutable.Stack
 
 @main def main: Unit = {
-  println(AdventOfCode.task_5_2("src/main/resources/task_5_input.txt"))
+  println(AdventOfCode.task_6_2("src/main/resources/task_6_input.txt"))
 }
 
 object AdventOfCode {
@@ -178,7 +178,7 @@ object AdventOfCode {
     }.get
 
   def task_5_1(inputFile: String): String =
-    Using(Source.fromFile(inputFile)) { source => {
+    Using(Source.fromFile(inputFile)) { source =>
       val lines = source.getLines.toList
       val separator = lines.indexOf("")
       val (stacksInput, actions) = (lines.take(separator), lines.drop(separator + 1))
@@ -216,11 +216,10 @@ object AdventOfCode {
       })
 
       stacks.map(_.pop()).reduce(_ + _)
-    }
     }.get
 
   def task_5_2(inputFile: String): String =
-    Using(Source.fromFile(inputFile)) { source => {
+    Using(Source.fromFile(inputFile)) { source =>
       val lines = source.getLines.toList
       val separator = lines.indexOf("")
       val (stacksInput, actions) = (lines.take(separator), lines.drop(separator + 1))
@@ -258,6 +257,28 @@ object AdventOfCode {
       })
 
       stacks.map(_.pop()).reduce(_ + _)
-    }
     }.get
+
+  private def task_6_calcMarker(inputFile: String, markerSize: Int): Int=
+    Using(Source.fromFile(inputFile)) { source =>
+      source.getLines.next()
+        .foldLeft(("", 0))((state, c) => {
+          val (marker, i) = state
+          if (marker.length < markerSize) {
+            (marker + c, i + 1)
+          } else {
+            if (marker.toSet.size == markerSize) {
+              (marker, i)
+            } else {
+              (marker.substring(1) + c, i + 1)
+            }
+          }
+        })._2
+    }.get
+
+  def task_6_1(inputFile: String): Int =
+    task_6_calcMarker(inputFile, 4)
+
+  def task_6_2(inputFile: String): Int =
+    task_6_calcMarker(inputFile, 14)
 }
