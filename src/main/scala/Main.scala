@@ -181,7 +181,7 @@ object AdventOfCode {
     Using(Source.fromFile(inputFile)) { source => {
       val lines = source.getLines.toList
       val separator = lines.indexOf("")
-      val (stacksInput, actions) = lines.splitAt(separator)
+      val (stacksInput, actions) = (lines.take(separator), lines.drop(separator + 1))
 
       val stacks: List[mutable.Stack[String]] = stacksInput
         .foldRight(List[mutable.Stack[String]]())((line, stacks) => {
@@ -202,19 +202,17 @@ object AdventOfCode {
 
       actions.foreach(line => {
         val pattern = """move (\d+) from (\d+) to (\d+)""".r
-        if (pattern.matches(line)) {
-          val (nToMove, from, to) = pattern
-            .findAllIn(line)
-            .matchData
-            .map(m => (m.group(1).toInt, m.group(2).toInt, m.group(3).toInt))
-            .toList
-            .head
-          (0 until nToMove)
-            .foreach(_ => {
-              val crate = stacks(from - 1).pop()
-              stacks(to - 1).push(crate)
-            })
-        }
+        val (nToMove, from, to) = pattern
+          .findAllIn(line)
+          .matchData
+          .map(m => (m.group(1).toInt, m.group(2).toInt, m.group(3).toInt))
+          .toList
+          .head
+        (0 until nToMove)
+          .foreach(_ => {
+            val toMove = stacks(from - 1).pop()
+            stacks(to - 1).push(toMove)
+          })
       })
 
       stacks.map(_.pop()).reduce(_ + _)
