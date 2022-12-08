@@ -6,7 +6,7 @@ import scala.util.{Failure, Success, Using}
 import scala.collection.mutable.Stack
 
 @main def main: Unit = {
-  println(AdventOfCode.task_6_2("src/main/resources/task_6_input.txt"))
+  println(AdventOfCode.task_7_1("src/main/resources/task_7_input.txt"))
 }
 
 object AdventOfCode {
@@ -265,4 +265,46 @@ object AdventOfCode {
 
   def task_6_2(inputFile: String): Int =
     task_6_getMarkerEnd(inputFile, 14)
+
+  def task_7_1(inputFile: String): Int =
+    Using(Source.fromFile(inputFile)) { source =>
+      val dirs = mutable.Map[String, Int]()
+      var path = Array[String]()
+      source.getLines
+        .foreach(line => {
+          if (line.startsWith("$")) {
+            line match {
+              case "$ ls" => // do nothing
+              case cdDir =>
+                cdDir.substring(5) match {
+                  case "/" =>
+                    dirs.put("root", 0)
+                    path = Array("root")
+                  case ".." =>
+                    path = path.take(path.length - 1)
+                  case dir =>
+                    val fullDirName = path.reduce(_ + "/" + _) + "/" + dir
+                    dirs.put(fullDirName, 0)
+                    path = path.appended(dir)
+                }
+            }
+          } else {
+            val split = line.split(" ")
+            (split(0), split(1)) match {
+              case ("dir", dir) =>
+                val fullDirName = path.reduce(_ + "/" + _) + "/" + dir
+                dirs.put(fullDirName, 0)
+              case (size, _) =>
+                var fullDirName = ""
+                path
+                  .foreach(dir => {
+                    fullDirName = if (fullDirName == "") dir else fullDirName + "/" + dir
+                    val currentSize = dirs(fullDirName)
+                    dirs.put(fullDirName, currentSize + size.toInt)
+                  })
+            }
+          }
+        })
+      dirs.filter((_, size) => size <= 100000).values.sum
+    }.get
 }
