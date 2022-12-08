@@ -6,7 +6,7 @@ import scala.util.{Failure, Success, Using}
 import scala.collection.mutable.Stack
 
 @main def main: Unit = {
-  println(AdventOfCode.task_7_2("src/main/resources/task_7_input.txt"))
+  println(AdventOfCode.task_7_2("src/main/resources/task_07_input.txt"))
 }
 
 object AdventOfCode {
