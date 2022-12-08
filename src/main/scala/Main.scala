@@ -6,7 +6,7 @@ import scala.util.{Failure, Success, Using}
 import scala.collection.mutable.Stack
 
 @main def main: Unit = {
-  println(AdventOfCode.task_7_1("src/main/resources/task_7_input.txt"))
+  println(AdventOfCode.task_7_2("src/main/resources/task_7_input.txt"))
 }
 
 object AdventOfCode {
@@ -266,7 +266,7 @@ object AdventOfCode {
   def task_6_2(inputFile: String): Int =
     task_6_getMarkerEnd(inputFile, 14)
 
-  def task_7_1(inputFile: String): Int =
+  private def task_7_parseDirs(inputFile: String): mutable.Map[String, Int] =
     Using(Source.fromFile(inputFile)) { source =>
       val dirs = mutable.Map[String, Int]()
       var path = Array[String]()
@@ -305,6 +305,27 @@ object AdventOfCode {
             }
           }
         })
-      dirs.filter((_, size) => size <= 100000).values.sum
+      dirs
     }.get
+
+  def task_7_1(inputFile: String): Int =
+    val dirs = task_7_parseDirs(inputFile)
+    dirs.filter((_, size) => size <= 100000).values.sum
+
+  def task_7_2(inputFile: String): Int =
+    val totalSpace = 70000000
+    val neededSpace = 30000000
+
+    val dirs = task_7_parseDirs(inputFile)
+
+    val usedSpace = dirs("root")
+    val spaceToFree = neededSpace - (totalSpace - usedSpace)
+
+    dirs.values.foldLeft(usedSpace)((bestToRemove, dirSize) =>
+      if (dirSize > spaceToFree && dirSize < bestToRemove) {
+        dirSize
+      } else {
+        bestToRemove
+      }
+    )
 }
