@@ -6,7 +6,7 @@ import scala.util.{Failure, Success, Using}
 import scala.collection.mutable.Stack
 
 @main def main: Unit = {
-  println(AdventOfCode.task_9_1("src/main/resources/task_09_input.txt"))
+  println(AdventOfCode.task_9_2("src/main/resources/task_09_input.txt"))
 }
 
 object AdventOfCode {
@@ -484,7 +484,7 @@ object AdventOfCode {
 
     if (
       Math.abs(hX - tX) < 2 && hY == tY || hX == tX && Math.abs(hY - tY) < 2
-        || Math.abs(hX - tX) == 1 && Math.abs(hY - tY) == 1
+      || Math.abs(hX - tX) == 1 && Math.abs(hY - tY) == 1
     ) {
       oldTail
     } else if (Math.abs(hX - tX) == 2 && hY == tY) {
@@ -508,11 +508,9 @@ object AdventOfCode {
 
   def task_9_1(inputFile: String): Int =
     Using(Source.fromFile(inputFile)) { source =>
-      var tailVisited = Set((0, 0))
-      var head = (0, 0)
-      var tail = (0, 0)
       source.getLines
-        .foreach(line =>
+        .foldLeft(Set((0, 0)), (0, 0), (0, 0))((state, line) =>
+          var (tailVisited, head, tail) = state
           val (move, count) = {
             val split = line.split(" ")
             (split(0), split(1))
@@ -524,18 +522,18 @@ object AdventOfCode {
               tail = task_9_newTailPosition(head, tail)
               tailVisited = tailVisited + tail
             )
+          (tailVisited, head, tail)
         )
-
-      tailVisited.size
+        ._1
+        .size
     }.get
 
   def task_9_2(inputFile: String): Int =
     Using(Source.fromFile(inputFile)) { source =>
-      var tailVisited = Set((0, 0))
-      var head = (0, 0)
-      var tail = (0, 0)
+      val rope = Array.fill(9)((0, 0))
       source.getLines
-        .foreach(line =>
+        .foldLeft(Set((0, 0)), (0, 0), rope)((state, line) =>
+          var (tailVisited, head, rope) = state
           val (move, count) = {
             val split = line.split(" ")
             (split(0), split(1))
@@ -544,11 +542,18 @@ object AdventOfCode {
           (0 until count.toInt)
             .foreach(_ =>
               head = (head._1 + diff._1, head._2 + diff._2)
-              tail = task_9_newTailPosition(head, tail)
-              tailVisited = tailVisited + tail
+              rope = rope
+                .foldLeft(Array[(Int, Int)](), head)((state, tail) =>
+                  val (rope, prev) = state
+                  val newTail = task_9_newTailPosition(prev, tail)
+                  (rope :+ newTail, newTail)
+                )
+                ._1
+              tailVisited = tailVisited + rope.last
             )
+          (tailVisited, head, rope)
         )
-
-      tailVisited.size
+        ._1
+        .size
     }.get
 }
