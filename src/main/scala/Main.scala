@@ -6,7 +6,7 @@ import scala.util.{Failure, Success, Using}
 import scala.collection.mutable.Stack
 
 @main def main: Unit = {
-  println(AdventOfCode.task_9_2("src/main/resources/task_09_input.txt"))
+  println(AdventOfCode.task_10_1("src/main/resources/task_10_input.txt"))
 }
 
 object AdventOfCode {
@@ -555,5 +555,29 @@ object AdventOfCode {
         )
         ._1
         .size
+    }.get
+
+  def task_10_1(inputFile: String): Int =
+    val cyclesToCount = (20 to 220 by 40).toSet
+    Using(Source.fromFile(inputFile)) { source =>
+      source.getLines
+        .foldLeft((1, 1, 0))((state, line) =>
+          val (cycle, x, sum) = state
+          line match {
+            case "noop" =>
+              val strength =
+                if (cyclesToCount.contains(cycle)) cycle * x
+                else 0
+              (cycle + 1, x, sum + strength)
+            case line =>
+              val diff = line.split(" ")(1).toInt
+              val strength =
+                if (cyclesToCount.contains(cycle)) cycle * x
+                else if (cyclesToCount.contains(cycle + 1)) (cycle + 1) * x
+                else 0
+              (cycle + 2, x + diff, sum + strength)
+          }
+        )
+        ._3
     }.get
 }
