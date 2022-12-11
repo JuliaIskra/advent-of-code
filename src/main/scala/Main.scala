@@ -468,62 +468,87 @@ object AdventOfCode {
       maxScore
     }.get
 
-  def task_9_1(inputFile: String): Int =
-
-    def toDiff(move: String): (Int, Int) =
-      move match {
-        case "L" => (0, -1)
-        case "R" => (0, 1)
-        case "U" => (1, 0)
-        case "D" => (-1, 0)
-      }
-
-    def newTailPosition(head: (Int, Int), oldTail: (Int, Int)): (Int, Int) = {
-      val hX = head._1
-      val hY = head._2
-      val tX = oldTail._1
-      val tY = oldTail._2
-
-      if (
-        Math.abs(hX - tX) < 2 && hY == tY || hX == tX && Math.abs(hY - tY) < 2
-        || Math.abs(hX - tX) == 1 && Math.abs(hY - tY) == 1
-      ) {
-        oldTail
-      } else if (Math.abs(hX - tX) == 2 && hY == tY) {
-        if (hX > tX) {
-          (tX + 1, tY)
-        } else {
-          (tX - 1, tY)
-        }
-      } else if (hX == tX && Math.abs(hY - tY) == 2) {
-        if (hY > tY) {
-          (tX, tY + 1)
-        } else {
-          (tX, tY - 1)
-        }
-      } else {
-        val newTailX = if (hX > tX) tX + 1 else tX - 1
-        val newTailY = if (hY > tY) tY + 1 else tY - 1
-        (newTailX, newTailY)
-      }
+  private def task_9_toDiff(move: String): (Int, Int) =
+    move match {
+      case "L" => (0, -1)
+      case "R" => (0, 1)
+      case "U" => (1, 0)
+      case "D" => (-1, 0)
     }
 
+  private def task_9_newTailPosition(head: (Int, Int), oldTail: (Int, Int)): (Int, Int) = {
+    val hX = head._1
+    val hY = head._2
+    val tX = oldTail._1
+    val tY = oldTail._2
+
+    if (
+      Math.abs(hX - tX) < 2 && hY == tY || hX == tX && Math.abs(hY - tY) < 2
+        || Math.abs(hX - tX) == 1 && Math.abs(hY - tY) == 1
+    ) {
+      oldTail
+    } else if (Math.abs(hX - tX) == 2 && hY == tY) {
+      if (hX > tX) {
+        (tX + 1, tY)
+      } else {
+        (tX - 1, tY)
+      }
+    } else if (hX == tX && Math.abs(hY - tY) == 2) {
+      if (hY > tY) {
+        (tX, tY + 1)
+      } else {
+        (tX, tY - 1)
+      }
+    } else {
+      val newTailX = if (hX > tX) tX + 1 else tX - 1
+      val newTailY = if (hY > tY) tY + 1 else tY - 1
+      (newTailX, newTailY)
+    }
+  }
+
+  def task_9_1(inputFile: String): Int =
     Using(Source.fromFile(inputFile)) { source =>
-      var visited = Set((0, 0))
+      var tailVisited = Set((0, 0))
       var head = (0, 0)
       var tail = (0, 0)
       source.getLines
         .foreach(line =>
-          val split = line.split(" ")
-          val diff = toDiff(split(0))
-          (0 until split(1).toInt)
+          val (move, count) = {
+            val split = line.split(" ")
+            (split(0), split(1))
+          }
+          val diff = task_9_toDiff(move)
+          (0 until count.toInt)
             .foreach(_ =>
               head = (head._1 + diff._1, head._2 + diff._2)
-              tail = newTailPosition(head, tail)
-              visited = visited + tail
+              tail = task_9_newTailPosition(head, tail)
+              tailVisited = tailVisited + tail
             )
         )
 
-      visited.size
+      tailVisited.size
+    }.get
+
+  def task_9_2(inputFile: String): Int =
+    Using(Source.fromFile(inputFile)) { source =>
+      var tailVisited = Set((0, 0))
+      var head = (0, 0)
+      var tail = (0, 0)
+      source.getLines
+        .foreach(line =>
+          val (move, count) = {
+            val split = line.split(" ")
+            (split(0), split(1))
+          }
+          val diff = task_9_toDiff(move)
+          (0 until count.toInt)
+            .foreach(_ =>
+              head = (head._1 + diff._1, head._2 + diff._2)
+              tail = task_9_newTailPosition(head, tail)
+              tailVisited = tailVisited + tail
+            )
+        )
+
+      tailVisited.size
     }.get
 }
