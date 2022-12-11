@@ -6,7 +6,7 @@ import scala.util.{Failure, Success, Using}
 import scala.collection.mutable.Stack
 
 @main def main: Unit = {
-  println(AdventOfCode.task_8_2("src/main/resources/task_08_input.txt"))
+  println(AdventOfCode.task_9_1("src/main/resources/task_09_input.txt"))
 }
 
 object AdventOfCode {
@@ -457,7 +457,8 @@ object AdventOfCode {
                 rightCol = rightCol + 1
               }
 
-              val visibilityScore = visibleFromAbove * visibleFromBelow  * visibleFromLeft * visibleFromRight
+              val visibilityScore =
+                visibleFromAbove * visibleFromBelow * visibleFromLeft * visibleFromRight
               if (visibilityScore > maxScore) {
                 maxScore = visibilityScore
               }
@@ -465,5 +466,64 @@ object AdventOfCode {
         )
 
       maxScore
+    }.get
+
+  def task_9_1(inputFile: String): Int =
+
+    def toDiff(move: String): (Int, Int) =
+      move match {
+        case "L" => (0, -1)
+        case "R" => (0, 1)
+        case "U" => (1, 0)
+        case "D" => (-1, 0)
+      }
+
+    def newTailPosition(head: (Int, Int), oldTail: (Int, Int)): (Int, Int) = {
+      val hX = head._1
+      val hY = head._2
+      val tX = oldTail._1
+      val tY = oldTail._2
+
+      if (
+        Math.abs(hX - tX) < 2 && hY == tY || hX == tX && Math.abs(hY - tY) < 2
+        || Math.abs(hX - tX) == 1 && Math.abs(hY - tY) == 1
+      ) {
+        oldTail
+      } else if (Math.abs(hX - tX) == 2 && hY == tY) {
+        if (hX > tX) {
+          (tX + 1, tY)
+        } else {
+          (tX - 1, tY)
+        }
+      } else if (hX == tX && Math.abs(hY - tY) == 2) {
+        if (hY > tY) {
+          (tX, tY + 1)
+        } else {
+          (tX, tY - 1)
+        }
+      } else {
+        val newTailX = if (hX > tX) tX + 1 else tX - 1
+        val newTailY = if (hY > tY) tY + 1 else tY - 1
+        (newTailX, newTailY)
+      }
+    }
+
+    Using(Source.fromFile(inputFile)) { source =>
+      var visited = Set((0, 0))
+      var head = (0, 0)
+      var tail = (0, 0)
+      source.getLines
+        .foreach(line =>
+          val split = line.split(" ")
+          val diff = toDiff(split(0))
+          (0 until split(1).toInt)
+            .foreach(_ =>
+              head = (head._1 + diff._1, head._2 + diff._2)
+              tail = newTailPosition(head, tail)
+              visited = visited + tail
+            )
+        )
+
+      visited.size
     }.get
 }
