@@ -354,7 +354,7 @@ object AdventOfCode {
                   if (treeSize <= treesMap(aboveRow)(col)) {
                     visibleFromAbove = false
                   }
-                  aboveRow = aboveRow - 1
+                  aboveRow -= 1
                 }
 
                 var visibleFromBelow = true
@@ -363,7 +363,7 @@ object AdventOfCode {
                   if (treeSize <= treesMap(belowRow)(col)) {
                     visibleFromBelow = false
                   }
-                  belowRow = belowRow + 1
+                  belowRow += 1
                 }
 
                 var visibleFromLeft = true
@@ -372,7 +372,7 @@ object AdventOfCode {
                   if (treeSize <= treesMap(row)(leftCol)) {
                     visibleFromLeft = false
                   }
-                  leftCol = leftCol - 1
+                  leftCol -= 1
                 }
 
                 var visibleFromRight = true
@@ -381,13 +381,13 @@ object AdventOfCode {
                   if (treeSize <= treesMap(row)(rightCol)) {
                     visibleFromRight = false
                   }
-                  rightCol = rightCol + 1
+                  rightCol += 1
                 }
 
                 if (
                   !visibleFromAbove && !visibleFromBelow && !visibleFromLeft && !visibleFromRight
                 ) {
-                  invisibleCount = invisibleCount + 1
+                  invisibleCount += 1
                 }
               }
             )
@@ -417,44 +417,44 @@ object AdventOfCode {
               var visibleFromAbove = 0
               var aboveRow = row - 1
               while (!stop && aboveRow >= 0) {
-                visibleFromAbove = visibleFromAbove + 1
+                visibleFromAbove += 1
                 if (treeSize <= treesMap(aboveRow)(col)) {
                   stop = true
                 }
-                aboveRow = aboveRow - 1
+                aboveRow -= 1
               }
 
               stop = false
               var visibleFromBelow = 0
               var belowRow = row + 1
               while (!stop && belowRow <= maxRow) {
-                visibleFromBelow = visibleFromBelow + 1
+                visibleFromBelow += 1
                 if (treeSize <= treesMap(belowRow)(col)) {
                   stop = true
                 }
-                belowRow = belowRow + 1
+                belowRow += 1
               }
 
               stop = false
               var visibleFromLeft = 0
               var leftCol = col - 1
               while (!stop && leftCol >= 0) {
-                visibleFromLeft = visibleFromLeft + 1
+                visibleFromLeft += 1
                 if (treeSize <= treesMap(row)(leftCol)) {
                   stop = true
                 }
-                leftCol = leftCol - 1
+                leftCol -= 1
               }
 
               stop = false
               var visibleFromRight = 0
               var rightCol = col + 1
               while (!stop && rightCol <= maxCol) {
-                visibleFromRight = visibleFromRight + 1
+                visibleFromRight += 1
                 if (treeSize <= treesMap(row)(rightCol)) {
                   stop = true
                 }
-                rightCol = rightCol + 1
+                rightCol += 1
               }
 
               val visibilityScore =
