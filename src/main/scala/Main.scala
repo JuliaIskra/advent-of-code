@@ -6,7 +6,7 @@ import scala.util.{Failure, Success, Using}
 import scala.collection.mutable.Stack
 
 @main def main: Unit = {
-  println(AdventOfCode.task_10_2("src/main/resources/task_10_input.txt"))
+  println(AdventOfCode.task_11_1("src/main/resources/task_11_input.txt"))
 }
 
 object AdventOfCode {
@@ -613,5 +613,129 @@ object AdventOfCode {
         )
         ._3
         .reduce(_ + "\n" + _)
+    }.get
+
+  def task_11_1(inputFile: String): Int =
+    case class Monkey(
+        var items: Array[Int],
+        operation: Int => Int,
+        divisibleBy: Int,
+        throwToIfTrue: Int,
+        throwToIfFalse: Int,
+        var inspectedCount: Int = 0
+    )
+
+    val itemsPattern = """\s+Starting items: (.*)""".r
+    val operationPattern = """\s+Operation: new = (\S+) (\S+) (\S+)""".r
+    val divisiblePattern = """\s+Test: divisible by (\d+)""".r
+    val truePattern = """\s+If true: throw to monkey (\d+)""".r
+    val falsePattern = """\s+If false: throw to monkey (\d+)""".r
+    val rounds = 20
+
+    def parseItems(input: String): Array[Int] =
+      itemsPattern
+        .findAllIn(input)
+        .matchData
+        .map(_.group(1))
+        .next()
+        .split(", ")
+        .map(_.toInt)
+
+    def parseOperation(input: String): Int => Int =
+      operationPattern
+        .findAllIn(input)
+        .matchData
+        .map(m => (m.group(1), m.group(2), m.group(3)))
+        .map((o1, op, o2) =>
+          val operand1 = o1 match {
+            case "old" => None
+            case n     => Some(n.toInt)
+          }
+          val operand2 = o2 match {
+            case "old" => None
+            case n     => Some(n.toInt)
+          }
+          op match {
+            case "+" =>
+              (operand1, operand2) match {
+                case (None, None)       => (n: Int) => n + n
+                case (None, Some(y))    => (n: Int) => n + y
+                case (Some(x), None)    => (n: Int) => x + n
+                case (Some(x), Some(y)) => (_: Int) => x + y
+              }
+            case "-" =>
+              (operand1, operand2) match {
+                case (None, None)       => (n: Int) => n - n
+                case (None, Some(y))    => (n: Int) => n - y
+                case (Some(x), None)    => (n: Int) => x - n
+                case (Some(x), Some(y)) => (_: Int) => x - y
+              }
+            case "/" =>
+              (operand1, operand2) match {
+                case (None, None)       => (n: Int) => n / n
+                case (None, Some(y))    => (n: Int) => n / y
+                case (Some(x), None)    => (n: Int) => x / n
+                case (Some(x), Some(y)) => (_: Int) => x / y
+              }
+            case "*" =>
+              (operand1, operand2) match {
+                case (None, None)       => (n: Int) => n * n
+                case (None, Some(y))    => (n: Int) => n * y
+                case (Some(x), None)    => (n: Int) => x * n
+                case (Some(x), Some(y)) => (_: Int) => x * y
+              }
+          }
+        )
+        .next()
+
+    Using(Source.fromFile(inputFile)) { source =>
+      val monkeys = source.getLines
+        .filterNot(_.isEmpty)
+        .grouped(6)
+        .foldLeft(List[Monkey]())((monkeys, lines) =>
+          var items = Array[Int]()
+          var operation = (n: Int) => n
+          var divisibleBy = 0
+          var ifTrue = 0
+          var ifFalse = 0
+
+          lines.foreach(line =>
+            if (itemsPattern.matches(line)) {
+              items = parseItems(line)
+            }
+            if (operationPattern.matches(line)) {
+              operation = parseOperation(line)
+            }
+            if (divisiblePattern.matches(line)) {
+              divisibleBy = divisiblePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
+            }
+            if (truePattern.matches(line)) {
+              ifTrue = truePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
+            }
+            if (falsePattern.matches(line)) {
+              ifFalse = falsePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
+            }
+          )
+          monkeys :+ Monkey(items, operation, divisibleBy, ifTrue, ifFalse)
+        )
+
+      var round = 0
+      while (round < rounds) {
+        monkeys.foreach(monkey =>
+          monkey.items.foreach(worry =>
+            val newWorry = monkey.operation.apply(worry) / 3
+            val nextMonkeyIdx =
+              if (newWorry % monkey.divisibleBy == 0) monkey.throwToIfTrue
+              else monkey.throwToIfFalse
+            val nextMonkey = monkeys(nextMonkeyIdx)
+            nextMonkey.items = nextMonkey.items.appended(newWorry)
+            monkey.inspectedCount += 1
+          )
+          monkey.items = Array[Int]()
+        )
+        round += 1
+      }
+
+      monkeys.map(_.inspectedCount).sorted.takeRight(2).product
     }.get
 }

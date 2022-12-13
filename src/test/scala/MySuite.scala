@@ -181,4 +181,10 @@ class MySuite extends munit.FunSuite {
         |#######.......#######.......#######.....""".stripMargin
     assertEquals(result, expected)
   }
+
+  test("task 11.1 example") {
+    val inputFile = "src/test/resources/task_11_example.txt"
+    val result = AdventOfCode.task_11_1(inputFile)
+    assertEquals(result, 10605)
+  }
 }
