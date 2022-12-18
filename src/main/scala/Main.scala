@@ -1,12 +1,12 @@
 import scala.collection.immutable.Nil
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-import scala.io.Source
+import scala.io.{BufferedSource, Source}
 import scala.util.{Failure, Success, Using}
 import scala.collection.mutable.Stack
 
 @main def main: Unit = {
-  println(AdventOfCode.task_11_1("src/main/resources/task_11_input.txt"))
+  println(AdventOfCode.task_11_2("src/main/resources/task_11_input.txt"))
 }
 
 object AdventOfCode {
@@ -615,33 +615,32 @@ object AdventOfCode {
         .reduce(_ + "\n" + _)
     }.get
 
-  def task_11_1(inputFile: String): Int =
-    case class Monkey(
-        var items: Array[Int],
-        operation: Int => Int,
-        divisibleBy: Int,
-        throwToIfTrue: Int,
-        throwToIfFalse: Int,
-        var inspectedCount: Int = 0
-    )
+  private case class Task_11_Monkey(
+      var items: Array[Long],
+      operation: Long => Long,
+      divisibleBy: Int,
+      throwToIfTrue: Int,
+      throwToIfFalse: Int,
+      var inspectedCount: Long = 0L
+  )
 
+  private def task_11_parseMonkeys(source: BufferedSource): List[Task_11_Monkey] =
     val itemsPattern = """\s+Starting items: (.*)""".r
     val operationPattern = """\s+Operation: new = (\S+) (\S+) (\S+)""".r
     val divisiblePattern = """\s+Test: divisible by (\d+)""".r
     val truePattern = """\s+If true: throw to monkey (\d+)""".r
     val falsePattern = """\s+If false: throw to monkey (\d+)""".r
-    val rounds = 20
 
-    def parseItems(input: String): Array[Int] =
+    def parseItems(input: String): Array[Long] =
       itemsPattern
         .findAllIn(input)
         .matchData
         .map(_.group(1))
         .next()
         .split(", ")
-        .map(_.toInt)
+        .map(_.toLong)
 
-    def parseOperation(input: String): Int => Int =
+    def parseOperation(input: String): Long => Long =
       operationPattern
         .findAllIn(input)
         .matchData
@@ -649,93 +648,109 @@ object AdventOfCode {
         .map((o1, op, o2) =>
           val operand1 = o1 match {
             case "old" => None
-            case n     => Some(n.toInt)
+            case n     => Some(n.toLong)
           }
           val operand2 = o2 match {
             case "old" => None
-            case n     => Some(n.toInt)
+            case n     => Some(n.toLong)
           }
           op match {
             case "+" =>
               (operand1, operand2) match {
-                case (None, None)       => (n: Int) => n + n
-                case (None, Some(y))    => (n: Int) => n + y
-                case (Some(x), None)    => (n: Int) => x + n
-                case (Some(x), Some(y)) => (_: Int) => x + y
+                case (None, None)       => (n: Long) => n + n
+                case (None, Some(y))    => (n: Long) => n + y
+                case (Some(x), None)    => (n: Long) => x + n
+                case (Some(x), Some(y)) => (_: Long) => x + y
               }
             case "-" =>
               (operand1, operand2) match {
-                case (None, None)       => (n: Int) => n - n
-                case (None, Some(y))    => (n: Int) => n - y
-                case (Some(x), None)    => (n: Int) => x - n
-                case (Some(x), Some(y)) => (_: Int) => x - y
+                case (None, None)       => (n: Long) => n - n
+                case (None, Some(y))    => (n: Long) => n - y
+                case (Some(x), None)    => (n: Long) => x - n
+                case (Some(x), Some(y)) => (_: Long) => x - y
               }
             case "/" =>
               (operand1, operand2) match {
-                case (None, None)       => (n: Int) => n / n
-                case (None, Some(y))    => (n: Int) => n / y
-                case (Some(x), None)    => (n: Int) => x / n
-                case (Some(x), Some(y)) => (_: Int) => x / y
+                case (None, None)       => (n: Long) => n / n
+                case (None, Some(y))    => (n: Long) => n / y
+                case (Some(x), None)    => (n: Long) => x / n
+                case (Some(x), Some(y)) => (_: Long) => x / y
               }
             case "*" =>
               (operand1, operand2) match {
-                case (None, None)       => (n: Int) => n * n
-                case (None, Some(y))    => (n: Int) => n * y
-                case (Some(x), None)    => (n: Int) => x * n
-                case (Some(x), Some(y)) => (_: Int) => x * y
+                case (None, None)       => (n: Long) => n * n
+                case (None, Some(y))    => (n: Long) => n * y
+                case (Some(x), None)    => (n: Long) => x * n
+                case (Some(x), Some(y)) => (_: Long) => x * y
               }
           }
         )
         .next()
 
+    source.getLines
+      .filterNot(_.isEmpty)
+      .grouped(6)
+      .foldLeft(List[Task_11_Monkey]())((monkeys, lines) =>
+        var items = Array[Long]()
+        var operation = (n: Long) => n
+        var divisibleBy = 0
+        var ifTrue = 0
+        var ifFalse = 0
+
+        lines.foreach(line =>
+          if (itemsPattern.matches(line)) {
+            items = parseItems(line)
+          }
+          if (operationPattern.matches(line)) {
+            operation = parseOperation(line)
+          }
+          if (divisiblePattern.matches(line)) {
+            divisibleBy = divisiblePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
+          }
+          if (truePattern.matches(line)) {
+            ifTrue = truePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
+          }
+          if (falsePattern.matches(line)) {
+            ifFalse = falsePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
+          }
+        )
+        monkeys :+ Task_11_Monkey(items, operation, divisibleBy, ifTrue, ifFalse)
+      )
+
+  private def task_11_playRounds(monkeys: List[Task_11_Monkey], rounds: Int, worryChangeFunction: Long => Long): Unit =
+    var round = 0
+    while (round < rounds) {
+      monkeys.foreach(monkey =>
+        monkey.items.foreach(worry =>
+          val newWorry = worryChangeFunction.apply(monkey.operation.apply(worry))
+          val nextMonkeyIdx =
+            if (newWorry % monkey.divisibleBy == 0) monkey.throwToIfTrue
+            else monkey.throwToIfFalse
+          val nextMonkey = monkeys(nextMonkeyIdx)
+          nextMonkey.items = nextMonkey.items.appended(newWorry)
+          monkey.inspectedCount += 1
+        )
+        monkey.items = Array[Long]()
+      )
+      round += 1
+    }
+
+  def task_11_1(inputFile: String): Long =
+    val rounds = 20
+
     Using(Source.fromFile(inputFile)) { source =>
-      val monkeys = source.getLines
-        .filterNot(_.isEmpty)
-        .grouped(6)
-        .foldLeft(List[Monkey]())((monkeys, lines) =>
-          var items = Array[Int]()
-          var operation = (n: Int) => n
-          var divisibleBy = 0
-          var ifTrue = 0
-          var ifFalse = 0
+      val monkeys = task_11_parseMonkeys(source)
+      task_11_playRounds(monkeys, rounds, worry => worry / 3)
+      monkeys.map(_.inspectedCount).sorted.takeRight(2).product
+    }.get
 
-          lines.foreach(line =>
-            if (itemsPattern.matches(line)) {
-              items = parseItems(line)
-            }
-            if (operationPattern.matches(line)) {
-              operation = parseOperation(line)
-            }
-            if (divisiblePattern.matches(line)) {
-              divisibleBy = divisiblePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
-            }
-            if (truePattern.matches(line)) {
-              ifTrue = truePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
-            }
-            if (falsePattern.matches(line)) {
-              ifFalse = falsePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
-            }
-          )
-          monkeys :+ Monkey(items, operation, divisibleBy, ifTrue, ifFalse)
-        )
+  def task_11_2(inputFile: String): Long =
+    val rounds = 10000
 
-      var round = 0
-      while (round < rounds) {
-        monkeys.foreach(monkey =>
-          monkey.items.foreach(worry =>
-            val newWorry = monkey.operation.apply(worry) / 3
-            val nextMonkeyIdx =
-              if (newWorry % monkey.divisibleBy == 0) monkey.throwToIfTrue
-              else monkey.throwToIfFalse
-            val nextMonkey = monkeys(nextMonkeyIdx)
-            nextMonkey.items = nextMonkey.items.appended(newWorry)
-            monkey.inspectedCount += 1
-          )
-          monkey.items = Array[Int]()
-        )
-        round += 1
-      }
-
+    Using(Source.fromFile(inputFile)) { source =>
+      val monkeys = task_11_parseMonkeys(source)
+      val commonMultiple = monkeys.map(_.divisibleBy).product
+      task_11_playRounds(monkeys, rounds, worry => worry % commonMultiple)
       monkeys.map(_.inspectedCount).sorted.takeRight(2).product
     }.get
 }
