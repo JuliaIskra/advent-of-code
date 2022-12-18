@@ -1,9 +1,8 @@
 import scala.collection.immutable.Nil
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ListBuffer, Stack}
 import scala.io.{BufferedSource, Source}
 import scala.util.{Failure, Success, Using}
-import scala.collection.mutable.Stack
 
 @main def main: Unit = {
   println(AdventOfCode.task_11_2("src/main/resources/task_11_input.txt"))
@@ -717,7 +716,11 @@ object AdventOfCode {
         monkeys :+ Task_11_Monkey(items, operation, divisibleBy, ifTrue, ifFalse)
       )
 
-  private def task_11_playRounds(monkeys: List[Task_11_Monkey], rounds: Int, worryChangeFunction: Long => Long): Unit =
+  private def task_11_playRounds(
+      monkeys: List[Task_11_Monkey],
+      rounds: Int,
+      worryChangeFunction: Long => Long
+  ): Unit =
     var round = 0
     while (round < rounds) {
       monkeys.foreach(monkey =>
