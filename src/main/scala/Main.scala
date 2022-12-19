@@ -1,4 +1,4 @@
-import scala.collection.immutable.Nil
+import scala.collection.immutable.{Nil, Set}
 import scala.collection.mutable
 import scala.collection.mutable.{ListBuffer, Stack}
 import scala.io.{BufferedSource, Source}
@@ -725,7 +725,7 @@ object AdventOfCode {
     while (round < rounds) {
       monkeys.foreach(monkey =>
         monkey.items.foreach(worry =>
-          val newWorry = worryChangeFunction.apply(monkey.operation.apply(worry))
+          val newWorry = worryChangeFunction(monkey.operation(worry))
           val nextMonkeyIdx =
             if (newWorry % monkey.divisibleBy == 0) monkey.throwToIfTrue
             else monkey.throwToIfFalse
@@ -781,33 +781,62 @@ object AdventOfCode {
       value
     }
 
-  def task_12_1(inputFile: String): Int =
+  private def task_12_findPossiblePaths(
+      heightmap: Array[Array[Char]],
+      startPosition: (Int, Int),
+      visitedPositions: Set[(Int, Int)],
+      whatNeighboursFit: (Char, Char) => Boolean
+  ): Set[(Int, Int)] =
+    val rows = heightmap.length
+    val cols = heightmap.head.length
+    val neighbourDiffCoordinates = Array((-1, 0), (1, 0), (0, 1), (0, -1))
+    var possiblePaths = Set[(Int, Int)]()
 
-    def findPossiblePaths(
-        heightmap: Array[Array[Char]],
-        startPosition: (Int, Int),
-        visitedPositions: Set[(Int, Int)]
-    ): Set[(Int, Int)] =
-      val rows = heightmap.length
-      val cols = heightmap.head.length
-      val neighbourDiffCoordinates = Array((-1, 0), (1, 0), (0, 1), (0, -1))
-      var possiblePaths = Set[(Int, Int)]()
+    neighbourDiffCoordinates.foreach(diff =>
+      val neighbour = (startPosition._1 + diff._1, startPosition._2 + diff._2)
+      if (
+        0 <= neighbour._1 && neighbour._1 < rows && 0 <= neighbour._2 && neighbour._2 < cols
+        && !visitedPositions.contains(neighbour)
+      ) {
+        val currentHeight = task_12_getHeightAt(heightmap, startPosition)
+        val neighbourHeight = task_12_getHeightAt(heightmap, neighbour)
+        if (whatNeighboursFit(neighbourHeight, currentHeight)) {
+          possiblePaths = possiblePaths + neighbour
+        }
+      }
+    )
+    possiblePaths
 
-      neighbourDiffCoordinates.foreach(diff =>
-        val neighbour = (startPosition._1 + diff._1, startPosition._2 + diff._2)
-        if (
-          0 <= neighbour._1 && neighbour._1 < rows && 0 <= neighbour._2 && neighbour._2 < cols
-          && !visitedPositions.contains(neighbour)
-        ) {
-          val currentHeight = task_12_getHeightAt(heightmap, startPosition)
-          val neighbourHeight = task_12_getHeightAt(heightmap, neighbour)
-          if (neighbourHeight - currentHeight <= 1) {
-            possiblePaths = possiblePaths + neighbour
-          }
+  private def task_12_findMinStepsTo(
+      heightmap: Array[Array[Char]],
+      startPosition: (Int, Int),
+      whatNeighboursFit: (Char, Char) => Boolean,
+      whenToStop: Set[(Int, Int)] => Boolean
+  ): Int =
+    var steps = 0
+    var currentPositions = Set(startPosition)
+    var visitedPositions = Set[(Int, Int)]()
+
+    while (!whenToStop(currentPositions)) {
+      var nextSteps = Set[(Int, Int)]()
+      currentPositions.foreach(pos =>
+        val paths = task_12_findPossiblePaths(
+          heightmap,
+          pos,
+          visitedPositions,
+          whatNeighboursFit
+        )
+        if (paths.nonEmpty) {
+          nextSteps = nextSteps ++ paths
         }
       )
-      possiblePaths
+      visitedPositions = visitedPositions ++ currentPositions
+      currentPositions = nextSteps
+      steps += 1
+    }
+    steps
 
+  def task_12_1(inputFile: String): Int =
     Using(Source.fromFile(inputFile)) { source =>
       val heightmap = source.getLines
         .map(_.toCharArray)
@@ -816,53 +845,15 @@ object AdventOfCode {
       val start = task_12_getPositionOf(heightmap, 'S')
       val destination = task_12_getPositionOf(heightmap, 'E')
 
-      var steps = 0
-      var currentPositions = Set(start)
-      var visitedPositions = Set[(Int, Int)]()
-
-      while (currentPositions.nonEmpty && !currentPositions.contains(destination)) {
-        var nextSteps = Set[(Int, Int)]()
-        currentPositions.foreach(pos =>
-          val paths = findPossiblePaths(heightmap, pos, visitedPositions)
-          if (paths.nonEmpty) {
-            nextSteps = nextSteps ++ paths
-          }
-        )
-        visitedPositions = visitedPositions ++ currentPositions
-        currentPositions = nextSteps
-        steps += 1
-      }
-
-      steps
+      task_12_findMinStepsTo(
+        heightmap,
+        start,
+        (neighbourHeight, currentHeight) => neighbourHeight - currentHeight <= 1,
+        currentPositions => currentPositions.isEmpty || currentPositions.contains(destination)
+      )
     }.get
 
   def task_12_2(inputFile: String): Int =
-
-    def findPossiblePaths(
-        heightmap: Array[Array[Char]],
-        startPosition: (Int, Int),
-        visitedPositions: Set[(Int, Int)]
-    ): Set[(Int, Int)] =
-      val rows = heightmap.length
-      val cols = heightmap.head.length
-      val neighbourDiffCoordinates = Array((-1, 0), (1, 0), (0, 1), (0, -1))
-      var possiblePaths = Set[(Int, Int)]()
-
-      neighbourDiffCoordinates.foreach(diff =>
-        val neighbour = (startPosition._1 + diff._1, startPosition._2 + diff._2)
-        if (
-          0 <= neighbour._1 && neighbour._1 < rows && 0 <= neighbour._2 && neighbour._2 < cols
-          && !visitedPositions.contains(neighbour)
-        ) {
-          val currentHeight = task_12_getHeightAt(heightmap, startPosition)
-          val neighbourHeight = task_12_getHeightAt(heightmap, neighbour)
-          if (currentHeight - neighbourHeight <= 1) {
-            possiblePaths = possiblePaths + neighbour
-          }
-        }
-      )
-      possiblePaths
-
     Using(Source.fromFile(inputFile)) { source =>
       val heightmap = source.getLines
         .map(_.toCharArray)
@@ -870,26 +861,13 @@ object AdventOfCode {
 
       val start = task_12_getPositionOf(heightmap, 'E')
 
-      var steps = 0
-      var currentPositions = Set(start)
-      var visitedPositions = Set[(Int, Int)]()
-
-      while (
-        currentPositions.nonEmpty
-        && !currentPositions.exists(pos => task_12_getHeightAt(heightmap, pos) == 'a')
-      ) {
-        var nextSteps = Set[(Int, Int)]()
-        currentPositions.foreach(pos =>
-          val paths = findPossiblePaths(heightmap, pos, visitedPositions)
-          if (paths.nonEmpty) {
-            nextSteps = nextSteps ++ paths
-          }
-        )
-        visitedPositions = visitedPositions ++ currentPositions
-        currentPositions = nextSteps
-        steps += 1
-      }
-
-      steps
+      task_12_findMinStepsTo(
+        heightmap,
+        start,
+        (neighbourHeight, currentHeight) => currentHeight - neighbourHeight <= 1,
+        currentPositions =>
+          currentPositions.isEmpty
+            || currentPositions.exists(pos => task_12_getHeightAt(heightmap, pos) == 'a')
+      )
     }.get
 }
