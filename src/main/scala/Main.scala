@@ -5,7 +5,7 @@ import scala.io.{BufferedSource, Source}
 import scala.util.{Failure, Success, Using}
 
 @main def main: Unit = {
-  println(AdventOfCode.task_11_2("src/main/resources/task_11_input.txt"))
+  println(AdventOfCode.task_12_1("src/main/resources/task_12_input.txt"))
 }
 
 object AdventOfCode {
@@ -755,5 +755,86 @@ object AdventOfCode {
       val commonMultiple = monkeys.map(_.divisibleBy).product
       task_11_playRounds(monkeys, rounds, worry => worry % commonMultiple)
       monkeys.map(_.inspectedCount).sorted.takeRight(2).product
+    }.get
+
+  def task_12_1(inputFile: String): Int =
+
+    def getPositionOf(heightmap: Array[Array[Char]], c: Char): (Int, Int) =
+      val rows = heightmap.length
+      val cols = heightmap.head.length
+      var position = (-1, -1)
+      (0 until rows)
+        .foreach(row =>
+          (0 until cols)
+            .foreach(col =>
+              if (heightmap(row)(col) == c)
+                position = (row, col)
+            )
+        )
+      position
+
+    def getHeightAt(heightmap: Array[Array[Char]],
+                    position: (Int, Int)): Char =
+      val value = heightmap(position._1)(position._2)
+      if (value == 'S') {
+        'a'
+      } else if (value == 'E') {
+        'z'
+      } else {
+        value
+      }
+
+    def findPossiblePaths(
+        heightmap: Array[Array[Char]],
+        startPosition: (Int, Int),
+        visitedPositions: Set[(Int, Int)]
+    ): Set[(Int, Int)] =
+      val rows = heightmap.length
+      val cols = heightmap.head.length
+      val neighbourDiffCoordinates = Array((-1, 0), (1, 0), (0, 1), (0, -1))
+      var possiblePaths = Set[(Int, Int)]()
+
+      neighbourDiffCoordinates.foreach(diff =>
+        val neighbour = (startPosition._1 + diff._1, startPosition._2 + diff._2)
+        if (
+          0 <= neighbour._1 && neighbour._1 < rows && 0 <= neighbour._2 && neighbour._2 < cols
+          && !visitedPositions.contains(neighbour)
+        ) {
+          val currentHeight = getHeightAt(heightmap, startPosition)
+          val neighbourHeight = getHeightAt(heightmap, neighbour)
+          if (neighbourHeight - currentHeight <= 1) {
+            possiblePaths = possiblePaths + neighbour
+          }
+        }
+      )
+
+      possiblePaths
+
+    Using(Source.fromFile(inputFile)) { source =>
+      val heightmap = source.getLines
+        .map(_.toCharArray)
+        .toArray
+
+      val start = getPositionOf(heightmap, 'S')
+      val destination = getPositionOf(heightmap, 'E')
+
+      var steps = 0
+      var currentPositions = Set(start)
+      var visitedPositions = Set[(Int, Int)]()
+
+      while (currentPositions.nonEmpty && !currentPositions.contains(destination)) {
+        var nextSteps = Set[(Int, Int)]()
+        currentPositions.foreach(pos =>
+          val paths = findPossiblePaths(heightmap, pos, visitedPositions)
+          if (paths.nonEmpty) {
+            nextSteps = nextSteps ++ paths
+          }
+        )
+        visitedPositions = visitedPositions ++ currentPositions
+        currentPositions = nextSteps
+        steps += 1
+      }
+
+      steps
     }.get
 }
