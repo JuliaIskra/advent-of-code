@@ -5,7 +5,7 @@ import scala.io.{BufferedSource, Source}
 import scala.util.{Failure, Success, Using}
 
 @main def main: Unit = {
-  println(AdventOfCode.task_12_2("src/main/resources/task_12_input.txt"))
+  println(AdventOfCode.task_13_1("src/main/resources/task_13_input.txt"))
 }
 
 object AdventOfCode {
@@ -869,5 +869,77 @@ object AdventOfCode {
           currentPositions.isEmpty
             || currentPositions.exists(pos => task_12_getHeightAt(heightmap, pos) == 'a')
       )
+    }.get
+
+  def task_13_1(inputFile: String): Int =
+    Using(Source.fromFile(inputFile)) { source =>
+      val packets = source
+        .getLines()
+        .filterNot(_.isEmpty)
+        .map(line =>
+          line
+            .foldLeft((List[Either[Char, Int]](), ""))((state, c) =>
+              val (list, nAcc) = state
+              c match {
+                case ',' =>
+                  if (nAcc.isEmpty) (list, nAcc)
+                  else (list :+ Right(nAcc.toInt), "")
+                case '[' => (list :+ Left('['), nAcc)
+                case ']' =>
+                  if (nAcc.isEmpty) (list :+ Left(']'), nAcc)
+                  else (list :+ Right(nAcc.toInt) :+ Left(']'), "")
+                case n => (list, nAcc + n)
+              }
+            )
+            ._1
+        )
+        .toList
+
+      var lineIdx = 0
+      var pairsInOrder = List[Int]()
+
+      while (lineIdx < packets.size) {
+        var packet_1 = packets(lineIdx)
+        var packet_2 = packets(lineIdx + 1)
+        var p1_idx = 0
+        var p2_idx = 0
+        var inOrder = Option.empty[Boolean]
+
+        while (p1_idx < packet_1.size && p2_idx < packet_2.size && inOrder.isEmpty) {
+          (packet_1(p1_idx), packet_2(p2_idx)) match {
+            case (Left('['), Left('[')) | (Left(']'), Left(']')) =>
+              p1_idx += 1
+              p2_idx += 1
+            case (Left('['), Right(n)) =>
+              packet_2 =
+                packet_2.take(p2_idx) :+ Left('[') :+ Right(n) :+ Left(']') :++ packet_2.drop(
+                  p2_idx + 1
+                )
+            case (Left(']'), _) =>
+              inOrder = Some(true)
+            case (Right(n), Left('[')) =>
+              packet_1 =
+                packet_1.take(p1_idx) :+ Left('[') :+ Right(n) :+ Left(']') :++ packet_1.drop(
+                  p1_idx + 1
+                )
+            case (_, Left(']')) =>
+              inOrder = Some(false)
+            case (Right(n1), Right(n2)) if n1 == n2 =>
+              p1_idx += 1
+              p2_idx += 1
+            case (Right(n1), Right(n2)) if n1 > n2 =>
+              inOrder = Some(false)
+            case (Right(n1), Right(n2)) if n1 < n2 =>
+              inOrder = Some(true)
+            case (l, r) => throw new RuntimeException(s"Unaccountable pair: $l, $r")
+          }
+        }
+
+        if (inOrder.get) {
+          pairsInOrder = pairsInOrder :+ (lineIdx + 2) / 2
+        }
+        lineIdx += 2
+      }
+      pairsInOrder.sum
     }.get
 }

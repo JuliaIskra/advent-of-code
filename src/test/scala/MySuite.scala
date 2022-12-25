@@ -205,4 +205,10 @@ class MySuite extends munit.FunSuite {
     val result = AdventOfCode.task_12_2(inputFile)
     assertEquals(result, 29)
   }
+
+  test("task 13.1 example") {
+    val inputFile = "src/test/resources/task_13_example.txt"
+    val result = AdventOfCode.task_13_1(inputFile)
+    assertEquals(result, 13)
+  }
 }
