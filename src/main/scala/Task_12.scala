@@ -84,15 +84,15 @@ object Task_12 {
 
   def part_1(inputFile: String): Int =
     Using(Source.fromFile(inputFile)) { source =>
-      val heightmap = source.getLines
+      val heightMap = source.getLines
         .map(_.toCharArray)
         .toArray
 
-      val start = getPositionOf(heightmap, 'S')
-      val destination = getPositionOf(heightmap, 'E')
+      val start = getPositionOf(heightMap, 'S')
+      val destination = getPositionOf(heightMap, 'E')
 
       findMinStepsTo(
-        heightmap,
+        heightMap,
         start,
         (neighbourHeight, currentHeight) => neighbourHeight - currentHeight <= 1,
         currentPositions => currentPositions.isEmpty || currentPositions.contains(destination)
@@ -101,19 +101,19 @@ object Task_12 {
 
   def part_2(inputFile: String): Int =
     Using(Source.fromFile(inputFile)) { source =>
-      val heightmap = source.getLines
+      val heightMap = source.getLines
         .map(_.toCharArray)
         .toArray
 
-      val start = getPositionOf(heightmap, 'E')
+      val start = getPositionOf(heightMap, 'E')
 
       findMinStepsTo(
-        heightmap,
+        heightMap,
         start,
         (neighbourHeight, currentHeight) => currentHeight - neighbourHeight <= 1,
         currentPositions =>
           currentPositions.isEmpty
-            || currentPositions.exists(pos => getHeightAt(heightmap, pos) == 'a')
+            || currentPositions.exists(pos => getHeightAt(heightMap, pos) == 'a')
       )
     }.get
 }
