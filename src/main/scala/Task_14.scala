@@ -38,8 +38,8 @@ object Task_14 {
     }.get
 
   private def nextSandLocation(
-                                currentSandLocation: (Int, Int),
-                                isCellFilled: (Int, Int) => Boolean
+      currentSandLocation: (Int, Int),
+      isCellFilled: (Int, Int) => Boolean
   ): Option[(Int, Int)] =
     val (sandX, sandY) = currentSandLocation
     if (!isCellFilled(sandX, sandY + 1)) {
@@ -63,16 +63,20 @@ object Task_14 {
       val maxX = filledCells.map(_._1).max
       val maxY = filledCells.map(_._2).max
 
-      var (sandX, sandY) = sandSource
+      var currentSandLocation = sandSource
       var rested = false
-      while (!rested && minX <= sandX && sandX <= maxX && minY <= sandY && sandY <= maxY) {
-        val nextLocation = nextSandLocation((sandX, sandY), (x, y) => filledCells.contains((x, y)))
+      while (
+        !rested
+        && minX <= currentSandLocation._1 && currentSandLocation._1 <= maxX
+        && minY <= currentSandLocation._2 && currentSandLocation._2 <= maxY
+      ) {
+        val nextLocation =
+          nextSandLocation(currentSandLocation, (x, y) => filledCells.contains((x, y)))
         if (nextLocation.isDefined) {
-          sandX = nextLocation.get._1
-          sandY = nextLocation.get._2
+          currentSandLocation = nextLocation.get
         } else {
           rested = true
-          filledCells = filledCells + ((sandX, sandY))
+          filledCells = filledCells + (currentSandLocation)
           counter += 1
         }
       }
@@ -94,7 +98,7 @@ object Task_14 {
       var rested = false
       while (!rested) {
         val nextLocation = nextSandLocation(currentSandLocation, isCellFilled)
-        if (nextLocation.isDefined){
+        if (nextLocation.isDefined) {
           currentSandLocation = nextLocation.get
         } else {
           rested = true
