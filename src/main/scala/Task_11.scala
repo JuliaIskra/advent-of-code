@@ -1,4 +1,4 @@
-import scala.io.{BufferedSource, Source}
+import scala.io.Source
 import scala.util.Using
 
 object Task_11 {
@@ -12,7 +12,7 @@ object Task_11 {
       var inspectedCount: Long = 0L
   )
 
-  private def parseMonkeys(source: BufferedSource): List[Monkey] =
+  private def parseMonkeys(inputFile: String): List[Monkey] =
     val itemsPattern = """\s+Starting items: (.*)""".r
     val operationPattern = """\s+Operation: new = (\S+) (\S+) (\S+)""".r
     val divisiblePattern = """\s+Test: divisible by (\d+)""".r
@@ -75,35 +75,37 @@ object Task_11 {
         )
         .next()
 
-    source.getLines
-      .filterNot(_.isEmpty)
-      .grouped(6)
-      .foldLeft(List[Monkey]())((monkeys, lines) =>
-        var items = Array[Long]()
-        var operation = (n: Long) => n
-        var divisibleBy = 0
-        var ifTrue = 0
-        var ifFalse = 0
+    Using(Source.fromFile(inputFile)) { source =>
+      source.getLines
+        .filterNot(_.isEmpty)
+        .grouped(6)
+        .foldLeft(List[Monkey]())((monkeys, lines) =>
+          var items = Array[Long]()
+          var operation = (n: Long) => n
+          var divisibleBy = 0
+          var ifTrue = 0
+          var ifFalse = 0
 
-        lines.foreach(line =>
-          if (itemsPattern.matches(line)) {
-            items = parseItems(line)
-          }
-          if (operationPattern.matches(line)) {
-            operation = parseOperation(line)
-          }
-          if (divisiblePattern.matches(line)) {
-            divisibleBy = divisiblePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
-          }
-          if (truePattern.matches(line)) {
-            ifTrue = truePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
-          }
-          if (falsePattern.matches(line)) {
-            ifFalse = falsePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
-          }
+          lines.foreach(line =>
+            if (itemsPattern.matches(line)) {
+              items = parseItems(line)
+            }
+            if (operationPattern.matches(line)) {
+              operation = parseOperation(line)
+            }
+            if (divisiblePattern.matches(line)) {
+              divisibleBy = divisiblePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
+            }
+            if (truePattern.matches(line)) {
+              ifTrue = truePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
+            }
+            if (falsePattern.matches(line)) {
+              ifFalse = falsePattern.findAllIn(line).matchData.map(_.group(1).toInt).next()
+            }
+          )
+          monkeys :+ Monkey(items, operation, divisibleBy, ifTrue, ifFalse)
         )
-        monkeys :+ Monkey(items, operation, divisibleBy, ifTrue, ifFalse)
-      )
+    }.get
 
   private def playRounds(
       monkeys: List[Monkey],
@@ -129,20 +131,14 @@ object Task_11 {
 
   def part_1(inputFile: String): Long =
     val rounds = 20
-
-    Using(Source.fromFile(inputFile)) { source =>
-      val monkeys = parseMonkeys(source)
-      playRounds(monkeys, rounds, worry => worry / 3)
-      monkeys.map(_.inspectedCount).sorted.takeRight(2).product
-    }.get
+    val monkeys = parseMonkeys(inputFile)
+    playRounds(monkeys, rounds, worry => worry / 3)
+    monkeys.map(_.inspectedCount).sorted.takeRight(2).product
 
   def part_2(inputFile: String): Long =
     val rounds = 10000
-
-    Using(Source.fromFile(inputFile)) { source =>
-      val monkeys = parseMonkeys(source)
-      val commonMultiple = monkeys.map(_.divisibleBy).product
-      playRounds(monkeys, rounds, worry => worry % commonMultiple)
-      monkeys.map(_.inspectedCount).sorted.takeRight(2).product
-    }.get
+    val monkeys = parseMonkeys(inputFile)
+    val commonMultiple = monkeys.map(_.divisibleBy).product
+    playRounds(monkeys, rounds, worry => worry % commonMultiple)
+    monkeys.map(_.inspectedCount).sorted.takeRight(2).product
 }

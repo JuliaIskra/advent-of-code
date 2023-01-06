@@ -1,30 +1,32 @@
-import scala.io.{BufferedSource, Source}
+import scala.io.Source
 import scala.util.Using
 
 object Task_13 {
 
-  private def parsePackets(source: BufferedSource): List[List[Either[Char, Int]]] =
-    source
-      .getLines()
-      .filterNot(_.isEmpty)
-      .map(line =>
-        line
-          .foldLeft((List[Either[Char, Int]](), ""))((state, c) =>
-            val (list, nAcc) = state
-            c match {
-              case ',' =>
-                if (nAcc.isEmpty) (list, nAcc)
-                else (list :+ Right(nAcc.toInt), "")
-              case '[' => (list :+ Left('['), nAcc)
-              case ']' =>
-                if (nAcc.isEmpty) (list :+ Left(']'), nAcc)
-                else (list :+ Right(nAcc.toInt) :+ Left(']'), "")
-              case n => (list, nAcc + n)
-            }
-          )
-          ._1
-      )
-      .toList
+  private def parsePackets(inputFile: String): List[List[Either[Char, Int]]] =
+    Using(Source.fromFile(inputFile)) { source =>
+      source
+        .getLines()
+        .filterNot(_.isEmpty)
+        .map(line =>
+          line
+            .foldLeft((List[Either[Char, Int]](), ""))((state, c) =>
+              val (list, nAcc) = state
+              c match {
+                case ',' =>
+                  if (nAcc.isEmpty) (list, nAcc)
+                  else (list :+ Right(nAcc.toInt), "")
+                case '[' => (list :+ Left('['), nAcc)
+                case ']' =>
+                  if (nAcc.isEmpty) (list :+ Left(']'), nAcc)
+                  else (list :+ Right(nAcc.toInt) :+ Left(']'), "")
+                case n => (list, nAcc + n)
+              }
+            )
+            ._1
+        )
+        .toList
+    }.get
 
   private def isLessThen: (List[Either[Char, Int]], List[Either[Char, Int]]) => Boolean =
     (packet_1, packet_2) =>
@@ -64,32 +66,28 @@ object Task_13 {
       inOrder.get
 
   def part_1(inputFile: String): Int =
-    Using(Source.fromFile(inputFile)) { source =>
-      val packets = parsePackets(source)
+    val packets = parsePackets(inputFile)
 
-      var idx = 0
-      var pairsInOrder = List[Int]()
-      while (idx < packets.size) {
-        if (isLessThen(packets(idx), packets(idx + 1))) {
-          pairsInOrder = pairsInOrder :+ (idx + 2) / 2
-        }
-        idx += 2
+    var idx = 0
+    var pairsInOrder = List[Int]()
+    while (idx < packets.size) {
+      if (isLessThen(packets(idx), packets(idx + 1))) {
+        pairsInOrder = pairsInOrder :+ (idx + 2) / 2
       }
-      pairsInOrder.sum
-    }.get
+      idx += 2
+    }
+    pairsInOrder.sum
 
   def part_2(inputFile: String): Int =
-    Using(Source.fromFile(inputFile)) { source =>
-      val dividerPacket_1 =
-        List[Either[Char, Int]](Left('['), Left('['), Right(2), Left(']'), Left(']'))
-      val dividerPacket_2 =
-        List[Either[Char, Int]](Left('['), Left('['), Right(6), Left(']'), Left(']'))
+    val dividerPacket_1 =
+      List[Either[Char, Int]](Left('['), Left('['), Right(2), Left(']'), Left(']'))
+    val dividerPacket_2 =
+      List[Either[Char, Int]](Left('['), Left('['), Right(6), Left(']'), Left(']'))
 
-      val packets = (parsePackets(source) :+ dividerPacket_1 :+ dividerPacket_2)
-        .sortWith(isLessThen)
+    val packets = (parsePackets(inputFile) :+ dividerPacket_1 :+ dividerPacket_2)
+      .sortWith(isLessThen)
 
-      val idx_1 = packets.indexOf(dividerPacket_1) + 1
-      val idx_2 = packets.indexOf(dividerPacket_2) + 1
-      idx_1 * idx_2
-    }.get
+    val idx_1 = packets.indexOf(dividerPacket_1) + 1
+    val idx_2 = packets.indexOf(dividerPacket_2) + 1
+    idx_1 * idx_2
 }
