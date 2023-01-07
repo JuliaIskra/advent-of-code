@@ -76,7 +76,7 @@ object Task_14 {
           currentSandLocation = nextLocation.get
         } else {
           rested = true
-          filledCells = filledCells + (currentSandLocation)
+          filledCells = filledCells + currentSandLocation
           counter += 1
         }
       }
@@ -102,7 +102,7 @@ object Task_14 {
           currentSandLocation = nextLocation.get
         } else {
           rested = true
-          filledCells = filledCells + (currentSandLocation)
+          filledCells = filledCells + currentSandLocation
           counter += 1
         }
       }
