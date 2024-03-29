@@ -1,3 +1,5 @@
+package y2022
+
 import scala.collection.mutable
 import scala.io.Source
 import scala.util.Using
