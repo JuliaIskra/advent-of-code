@@ -1,5 +1,5 @@
-import y2022.Task_15
+import y2023._
 
 @main def main: Unit = {
-  println(Task_15.part_1("src/main/resources/2022/task_15_input.txt", 2000000))
+  println(Task_1.part_2("src/main/resources/2023/task_01_input.txt"))
 }
