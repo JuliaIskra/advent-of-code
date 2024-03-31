@@ -27,6 +27,26 @@ object Task_3 {
         .sum
     }.get
 
+  def part_2(inputFile: String): Int =
+    Using(Source.fromFile(inputFile)) { source =>
+      val (numbers, symbols) = source.getLines()
+        .zipWithIndex
+        .map((line, row) => parseLine(line, row, 0, List(), List()))
+        .reduce { (a, b) =>
+          val (na, sa) = a
+          val (nb, sb) = b
+          (na ++ nb, sa ++ sb)
+        }
+
+      numbers
+        .map(n => (n, findNearbyStars(n, symbols)))
+        .flatMap((n, stars) => stars.map((_, n)))
+        .groupMap(_._1)(_._2)
+        .filter((symbol, numbers) => numbers.size == 2)
+        .values
+        .map(numbers => numbers(0).n * numbers(1).n)
+        .sum
+    }.get
 
   @tailrec
   private def parseLine(line: String, row: Int, col: Int, numbers: List[NumberWithCoord], symbols: List[SymbolCoord]): (List[NumberWithCoord], List[SymbolCoord]) = {
@@ -53,6 +73,18 @@ object Task_3 {
   }
 
   private def hasSymbolNearby(n: NumberWithCoord, symbols: List[(Int, Int)]): Boolean = {
+    val nearbyCoord = calcNearbyCoord(n)
+    nearbyCoord.exists(symbols.contains)
+  }
+
+  private def findNearbyStars(n: NumberWithCoord, symbols: List[SymbolCoord]): List[SymbolCoord] = {
+    val nearbyCoord = calcNearbyCoord(n)
+    symbols.filter { s =>
+      nearbyCoord.contains((s.row, s.col))
+    }
+  }
+
+  private def calcNearbyCoord(n: NumberWithCoord): Set[(Int, Int)] = {
     val (row, colStart) = n.start
     val (_, colEnd) = n.end
 
@@ -78,7 +110,6 @@ object Task_3 {
         (row + 1, col)
       ))
 
-    (aroundStartCoord ++ aroundMiddleCoord ++ aroundEndCoord)
-      .exists(symbols.contains)
+    aroundStartCoord ++ aroundMiddleCoord ++ aroundEndCoord
   }
 }
