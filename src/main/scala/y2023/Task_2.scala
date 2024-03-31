@@ -24,6 +24,19 @@ object Task_2 {
         .sum
     }.get
 
+  def part_2(inputFile: String): Int =
+    Using(Source.fromFile(inputFile)) { source =>
+      source.getLines
+        .map(parseGame)
+        .map { (gameId, cubeSets) =>
+          val maxRed = cubeSets.map(_.red).max
+          val maxGreen = cubeSets.map(_.green).max
+          val maxBlue = cubeSets.map(_.blue).max
+          maxRed * maxGreen * maxBlue
+        }
+        .sum
+    }.get
+
   private def parseGame(line: String) = {
     val a = line.split(":")
 
