@@ -8,40 +8,13 @@ object Task_3 {
 
   case class NumberWithCoord(n: Int, start: (Int, Int), end: (Int, Int))
 
-  case class SymbolCoord(row: Int, col: Int)
+  case class SymbolCoord(ch: Char, row: Int, col: Int)
 
   def part_1(inputFile: String): Int =
     Using(Source.fromFile(inputFile)) { source =>
       val (numbers, symbols) = source.getLines()
         .zipWithIndex
-        .map { (line, row) =>
-
-          @tailrec
-          def parseLine(col: Int, numbers: List[NumberWithCoord], symbols: List[SymbolCoord]): (List[NumberWithCoord], List[SymbolCoord]) = {
-            if (col < line.length) {
-              val ch = line.charAt(col)
-              if (ch.isDigit) {
-                if (numbers.nonEmpty && numbers.last.end._2 == col - 1) {
-                  val lastN = numbers.last
-                  val newNumbers = numbers.take(numbers.length - 1) :+ NumberWithCoord((lastN.n.toString + ch).toInt, lastN.start, (row, col))
-                  parseLine(col + 1, newNumbers, symbols)
-                } else {
-                  val newNumbers = numbers :+ NumberWithCoord(s"$ch".toInt, (row, col), (row, col))
-                  parseLine(col + 1, newNumbers, symbols)
-                }
-              } else if (ch != '.') {
-                val newSymbols = symbols :+ SymbolCoord(row, col)
-                parseLine(col + 1, numbers, newSymbols)
-              } else {
-                parseLine(col + 1, numbers, symbols)
-              }
-            } else {
-              (numbers, symbols)
-            }
-          }
-
-          parseLine(0, List(), List())
-        }
+        .map((line, row) => parseLine(line, row, 0, List(), List()))
         .reduce { (a, b) =>
           val (na, sa) = a
           val (nb, sb) = b
@@ -53,6 +26,31 @@ object Task_3 {
         .map(_.n)
         .sum
     }.get
+
+
+  @tailrec
+  private def parseLine(line: String, row: Int, col: Int, numbers: List[NumberWithCoord], symbols: List[SymbolCoord]): (List[NumberWithCoord], List[SymbolCoord]) = {
+    if (col < line.length) {
+      val ch = line.charAt(col)
+      if (ch.isDigit) {
+        if (numbers.nonEmpty && numbers.last.end._2 == col - 1) {
+          val lastN = numbers.last
+          val newNumbers = numbers.take(numbers.length - 1) :+ NumberWithCoord((lastN.n.toString + ch).toInt, lastN.start, (row, col))
+          parseLine(line, row, col + 1, newNumbers, symbols)
+        } else {
+          val newNumbers = numbers :+ NumberWithCoord(s"$ch".toInt, (row, col), (row, col))
+          parseLine(line, row, col + 1, newNumbers, symbols)
+        }
+      } else if (ch != '.') {
+        val newSymbols = symbols :+ SymbolCoord(ch, row, col)
+        parseLine(line, row, col + 1, numbers, newSymbols)
+      } else {
+        parseLine(line, row, col + 1, numbers, symbols)
+      }
+    } else {
+      (numbers, symbols)
+    }
+  }
 
   private def hasSymbolNearby(n: NumberWithCoord, symbols: List[(Int, Int)]): Boolean = {
     val (row, colStart) = n.start
