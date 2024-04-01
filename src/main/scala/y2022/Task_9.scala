@@ -21,7 +21,7 @@ object Task_9 {
 
     if (
       Math.abs(hX - tX) < 2 && hY == tY || hX == tX && Math.abs(hY - tY) < 2
-        || Math.abs(hX - tX) == 1 && Math.abs(hY - tY) == 1
+      || Math.abs(hX - tX) == 1 && Math.abs(hY - tY) == 1
     ) {
       oldTail
     } else if (Math.abs(hX - tX) == 2 && hY == tY) {

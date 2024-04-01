@@ -46,5 +46,7 @@ object Task_15 {
         } else {
           (nonBeaconPositions, beaconPositions)
         }
-      )._1.size
+      )
+      ._1
+      .size
 }

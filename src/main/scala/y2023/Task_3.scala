@@ -12,7 +12,8 @@ object Task_3 {
 
   def part_1(inputFile: String): Int =
     Using(Source.fromFile(inputFile)) { source =>
-      val (numbers, symbols) = source.getLines()
+      val (numbers, symbols) = source
+        .getLines()
         .zipWithIndex
         .map((line, row) => parseLine(line, row, 0, List(), List()))
         .reduce { (a, b) =>
@@ -29,7 +30,8 @@ object Task_3 {
 
   def part_2(inputFile: String): Int =
     Using(Source.fromFile(inputFile)) { source =>
-      val (numbers, symbols) = source.getLines()
+      val (numbers, symbols) = source
+        .getLines()
         .zipWithIndex
         .map((line, row) => parseLine(line, row, 0, List(), List()))
         .reduce { (a, b) =>
@@ -49,13 +51,23 @@ object Task_3 {
     }.get
 
   @tailrec
-  private def parseLine(line: String, row: Int, col: Int, numbers: List[NumberWithCoord], symbols: List[SymbolCoord]): (List[NumberWithCoord], List[SymbolCoord]) = {
+  private def parseLine(
+      line: String,
+      row: Int,
+      col: Int,
+      numbers: List[NumberWithCoord],
+      symbols: List[SymbolCoord]
+  ): (List[NumberWithCoord], List[SymbolCoord]) = {
     if (col < line.length) {
       val ch = line.charAt(col)
       if (ch.isDigit) {
         if (numbers.nonEmpty && numbers.last.end._2 == col - 1) {
           val lastN = numbers.last
-          val newNumbers = numbers.take(numbers.length - 1) :+ NumberWithCoord((lastN.n.toString + ch).toInt, lastN.start, (row, col))
+          val newNumbers = numbers.take(numbers.length - 1) :+ NumberWithCoord(
+            (lastN.n.toString + ch).toInt,
+            lastN.start,
+            (row, col)
+          )
           parseLine(line, row, col + 1, newNumbers, symbols)
         } else {
           val newNumbers = numbers :+ NumberWithCoord(s"$ch".toInt, (row, col), (row, col))
@@ -105,10 +117,12 @@ object Task_3 {
     )
 
     val aroundMiddleCoord = (colStart + 1 to colEnd)
-      .flatMap(col => Set(
-        (row - 1, col),
-        (row + 1, col)
-      ))
+      .flatMap(col =>
+        Set(
+          (row - 1, col),
+          (row + 1, col)
+        )
+      )
 
     aroundStartCoord ++ aroundMiddleCoord ++ aroundEndCoord
   }

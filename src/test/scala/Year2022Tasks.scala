@@ -1,4 +1,4 @@
-import y2022.{Task_1, Task_10, Task_11, Task_12, Task_13, Task_14, Task_15, Task_2, Task_3, Task_4, Task_5, Task_6, Task_7, Task_8, Task_9}
+import y2022.*
 
 // For more information on writing tests, see
 // https://scalameta.org/munit/docs/getting-started.html

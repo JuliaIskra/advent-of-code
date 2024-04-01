@@ -18,7 +18,9 @@ object Task_2 {
       source.getLines
         .map(parseGame)
         .filter { (gameId, cubeSets) =>
-          cubeSets.forall(set => set.red <= redTotal && set.green <= greenTotal && set.blue <= blueTotal)
+          cubeSets.forall { set =>
+            set.red <= redTotal && set.green <= greenTotal && set.blue <= blueTotal
+          }
         }
         .map(_._1)
         .sum
