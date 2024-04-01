@@ -22,16 +22,46 @@ object Task_4 {
 
   def part_2(inputFile: String): Int =
     Using(Source.fromFile(inputFile)) { source =>
-      source
+      val cardToMatches = source
         .getLines()
         .map { line =>
           val a = line.split(":")
-          val cardId = a(0).split(" ")(1).toInt
+          val cardId = a(0).split("\\s+")(1).toInt
           val winningNumbers = a(1).split('|')(0).split(" ").filterNot(_.isEmpty).map(_.toInt)
           val numbers = a(1).split('|')(1).split(" ").filterNot(_.isEmpty).map(_.toInt)
           val matchCount = numbers.count(winningNumbers.contains)
           (cardId, matchCount)
         }
-        .size
+        .toMap
+
+      val allCards = gatherCopyCards(cardToMatches.keys.toList.sorted, cardToMatches, Map())
+      allCards.values.sum
     }.get
+
+  @tailrec
+  private def gatherCopyCards(
+      cards: List[Int],
+      cardToMatches: Map[Int, Int],
+      cardsToCount: Map[Int, Int]
+  ): Map[Int, Int] = {
+    if (cards.isEmpty) {
+      cardsToCount
+    } else {
+      val currentCardId :: rest = cards: @unchecked
+      val updatedCardsToCount = scala.collection.mutable.Map.from(cardsToCount)
+      val currentCardCount = cardsToCount.getOrElse(currentCardId, 0) + 1
+      updatedCardsToCount.update(currentCardId, currentCardCount)
+
+      if (cardToMatches(currentCardId) > 0) {
+        (currentCardId + 1 to currentCardId + cardToMatches(currentCardId))
+          .foreach { copyCardId =>
+            val copyCardCount = cardsToCount.getOrElse(copyCardId, 0) + currentCardCount
+            updatedCardsToCount.update(copyCardId, copyCardCount)
+          }
+        gatherCopyCards(rest, cardToMatches, updatedCardsToCount.toMap)
+      } else {
+        gatherCopyCards(rest, cardToMatches, updatedCardsToCount.toMap)
+      }
+    }
+  }
 }
