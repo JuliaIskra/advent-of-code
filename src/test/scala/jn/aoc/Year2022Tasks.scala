@@ -1,4 +1,6 @@
-import y2022.*
+package jn.aoc
+
+import jn.aoc.y2022.*
 
 // For more information on writing tests, see
 // https://scalameta.org/munit/docs/getting-started.html

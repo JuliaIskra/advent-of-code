@@ -1,4 +1,4 @@
-package y2022
+package jn.aoc.y2022
 
 import scala.io.Source
 import scala.util.Using
@@ -60,9 +60,7 @@ object Task_8 {
                   rightCol += 1
                 }
 
-                if (
-                  !visibleFromAbove && !visibleFromBelow && !visibleFromLeft && !visibleFromRight
-                ) {
+                if (!visibleFromAbove && !visibleFromBelow && !visibleFromLeft && !visibleFromRight) {
                   invisibleCount += 1
                 }
               }

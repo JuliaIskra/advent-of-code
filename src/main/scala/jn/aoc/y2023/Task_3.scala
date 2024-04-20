@@ -1,4 +1,4 @@
-package y2023
+package jn.aoc.y2023
 
 import scala.annotation.tailrec
 import scala.io.Source

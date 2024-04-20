@@ -1,4 +1,4 @@
-package y2022
+package jn.aoc.y2022
 
 import scala.io.Source
 import scala.util.Using
@@ -24,14 +24,10 @@ object Task_14 {
             val to = coordinates(coordIdx + 1)
             if (from._1 == to._1) {
               val step = if (from._2 < to._2) 1 else -1
-              (from._2 to to._2 by step).foreach(y =>
-                updatedFilledCells = updatedFilledCells + ((from._1, y))
-              )
+              (from._2 to to._2 by step).foreach(y => updatedFilledCells = updatedFilledCells + ((from._1, y)))
             } else {
               val step = if (from._1 < to._1) 1 else -1
-              (from._1 to to._1 by step).foreach(x =>
-                updatedFilledCells = updatedFilledCells + ((x, from._2))
-              )
+              (from._1 to to._1 by step).foreach(x => updatedFilledCells = updatedFilledCells + ((x, from._2)))
             }
             coordIdx += 1
           }

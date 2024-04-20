@@ -1,4 +1,4 @@
-package y2023
+package jn.aoc.y2023
 
 import scala.annotation.tailrec
 import scala.io.Source
@@ -11,9 +11,9 @@ object Task_4 {
       source
         .getLines()
         .map { line =>
-          val a = line.split(":")(1).split('|')
-          val winningNumbers = a(0).split(" ").filterNot(_.isEmpty).map(_.toInt)
-          val numbers = a(1).split(" ").filterNot(_.isEmpty).map(_.toInt)
+          val numberSets = line.split(":")(1).split('|')
+          val winningNumbers = numberSets(0).split(" ").filterNot(_.isEmpty).map(_.toInt)
+          val numbers = numberSets(1).split(" ").filterNot(_.isEmpty).map(_.toInt)
           val matchCount = numbers.count(winningNumbers.contains)
           Math.pow(2, matchCount - 1).toInt
         }
@@ -25,10 +25,10 @@ object Task_4 {
       val cardToMatches = source
         .getLines()
         .map { line =>
-          val a = line.split(":")
-          val cardId = a(0).split("\\s+")(1).toInt
-          val winningNumbers = a(1).split('|')(0).split(" ").filterNot(_.isEmpty).map(_.toInt)
-          val numbers = a(1).split('|')(1).split(" ").filterNot(_.isEmpty).map(_.toInt)
+          val numberSets = line.split(":")
+          val cardId = numberSets(0).split("\\s+")(1).toInt
+          val winningNumbers = numberSets(1).split('|')(0).split(" ").filterNot(_.isEmpty).map(_.toInt)
+          val numbers = numberSets(1).split('|')(1).split(" ").filterNot(_.isEmpty).map(_.toInt)
           val matchCount = numbers.count(winningNumbers.contains)
           (cardId, matchCount)
         }

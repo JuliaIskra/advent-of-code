@@ -1,4 +1,4 @@
-package y2022
+package jn.aoc.y2022
 
 import scala.io.Source
 import scala.util.Using
