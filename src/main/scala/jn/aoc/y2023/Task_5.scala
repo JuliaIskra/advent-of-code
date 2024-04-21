@@ -81,8 +81,8 @@ object Task_5 {
     }.get
 
   private def parseAlmanac(lines: List[String]): Almanac = {
-    val partitionedLines = Utils.partitionBy[String](lines, s => s.isBlank)
-    val (seedsDescr, mapsDescr) = partitionedLines.splitAt(1)
+    val descriptions = Utils.splitBy[String](lines, s => s.isBlank)
+    val (seedsDescr, mapsDescr) = descriptions.splitAt(1)
     val seeds = seedsDescr.head.head.split(": ")(1).split(" ").map(_.toLong)
 
     val maps = mapsDescr.map { lines =>
@@ -126,14 +126,8 @@ object Task_5 {
   def splitIntoRanges(sourceRange: Range, mapRange: Range): List[Range] = {
     if (mapRange.start < sourceRange.start && sourceRange.start < mapRange.end && mapRange.end < sourceRange.end) {
       List(Range(sourceRange.start, mapRange.end), Range(mapRange.end + 1, sourceRange.end))
-    } else if (mapRange.start < sourceRange.start && sourceRange.end < mapRange.end) {
-      List(sourceRange)
     } else if (sourceRange.start < mapRange.start && mapRange.end < sourceRange.end) {
-      List(
-        Range(sourceRange.start, mapRange.start - 1),
-        Range(mapRange.start, mapRange.end),
-        Range(mapRange.end + 1, sourceRange.end)
-      )
+      List(Range(sourceRange.start, mapRange.start - 1), mapRange, Range(mapRange.end + 1, sourceRange.end))
     } else if (
       sourceRange.start < mapRange.start && mapRange.start < sourceRange.end && sourceRange.end < mapRange.end
     ) {

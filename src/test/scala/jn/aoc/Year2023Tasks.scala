@@ -65,6 +65,12 @@ class Year2023Tasks extends munit.FunSuite {
     assertEquals(result, 46L)
   }
 
+  test("task 5.2") {
+    val inputFile = "src/main/resources/2023/task_05_input.txt"
+    val result = Task_5.part_2(inputFile)
+    assertEquals(result, 5200543L)
+  }
+
   test("splitIntoRanges when map range is before source range") {
     import Task_5.Range
 
