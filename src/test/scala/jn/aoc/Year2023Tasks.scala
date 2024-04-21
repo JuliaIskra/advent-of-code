@@ -58,4 +58,52 @@ class Year2023Tasks extends munit.FunSuite {
     val result = Task_5.part_1(inputFile)
     assertEquals(result, 35L)
   }
+
+  test("task 5.2 example") {
+    val inputFile = "src/test/resources/2023/task_05_example.txt"
+    val result = Task_5.part_2(inputFile)
+    assertEquals(result, 46L)
+  }
+
+  test("splitIntoRanges when map range is before source range") {
+    import Task_5.Range
+
+    val ranges = Task_5.splitIntoRanges(Range(30, 40), Range(10, 20))
+    assertEquals(ranges, List(Range(30, 40)))
+  }
+
+  test("splitIntoRanges when map range overlaps with source range over start") {
+    import Task_5.Range
+
+    val ranges = Task_5.splitIntoRanges(Range(20, 40), Range(10, 30))
+    assertEquals(ranges, List(Range(20, 30), Range(31, 40)))
+  }
+
+  test("splitIntoRanges when map range includes source range") {
+    import Task_5.Range
+
+    val ranges = Task_5.splitIntoRanges(Range(20, 30), Range(10, 40))
+    assertEquals(ranges, List(Range(20, 30)))
+  }
+
+  test("splitIntoRanges when source range includes map range") {
+    import Task_5.Range
+
+    val ranges = Task_5.splitIntoRanges(Range(10, 40), Range(20, 30))
+    assertEquals(ranges, List(Range(10, 19), Range(20, 30), Range(31, 40)))
+  }
+
+  test("splitIntoRanges when map range overlaps with source range over end") {
+    import Task_5.Range
+
+    val ranges = Task_5.splitIntoRanges(Range(10, 30), Range(20, 40))
+    assertEquals(ranges, List(Range(10, 19), Range(20, 30)))
+  }
+
+  test("splitIntoRanges when source range is before map range") {
+    import Task_5.Range
+
+    val ranges = Task_5.splitIntoRanges(Range(10, 20), Range(30, 40))
+    assertEquals(ranges, List(Range(10, 20)))
+  }
 }
