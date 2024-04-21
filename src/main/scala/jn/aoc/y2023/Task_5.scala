@@ -8,30 +8,7 @@ import scala.util.Using
 
 object Task_5 {
 
-  case class SourceToDestMap(destStart: Long, sourceStart: Long, length: Long) {
-
-    val sourceRange = Range(sourceStart, sourceStart + length)
-
-    def isInRange(source: Long): Boolean = {
-      sourceStart <= source && source <= sourceStart + length
-    }
-
-    def getDest(source: Long): Long = {
-      val diff = source - sourceStart
-      destStart + diff
-    }
-
-    def checkRangeAndGetDest(source: Long): Long = {
-      if (isInRange(source)) {
-        val diff = source - sourceStart
-        destStart + diff
-      } else source
-    }
-
-    def doesOverlap(sourceRange: Range): Boolean = {
-      !(this.sourceRange.end < sourceRange.start || sourceRange.end < this.sourceRange.start)
-    }
-  }
+  case class SourceToDestMap(destStart: Long, sourceRange: Range)
 
   case class Range(start: Long, end: Long)
 
@@ -92,7 +69,7 @@ object Task_5 {
           s.split(" ")
             .map(_.toLong)
         )
-        .map(a => SourceToDestMap(a(0), a(1), a(2)))
+        .map(a => SourceToDestMap(a(0), Range(a(1), a(1) + a(2))))
     }
 
     Almanac(
@@ -108,19 +85,32 @@ object Task_5 {
   }
 
   private def mapSourceToDest(source: Long, mapping: Seq[SourceToDestMap]): Long = {
-    val dest = mapping.filter(_.isInRange(source)).map(_.getDest(source)).headOption
+    val dest = mapping.filter(isInRange(_, source)).map(calcDest(_, source)).headOption
     dest.getOrElse(source)
+  }
+
+  private def isInRange(map: SourceToDestMap, source: Long): Boolean = {
+    map.sourceRange.start <= source && source <= map.sourceRange.end
+  }
+
+  private def calcDest(map: SourceToDestMap, source: Long): Long = {
+    val diff = source - map.sourceRange.start
+    map.destStart + diff
   }
 
   private def mapSourceToDestRange(sourceRange: Range, mapping: Seq[SourceToDestMap]): List[Range] = {
     val destRanges = mapping
-      .filter(_.doesOverlap(sourceRange))
+      .filter(doOverlap(_, sourceRange))
       .map { map =>
         val sourceRanges = splitIntoRanges(sourceRange, map.sourceRange)
-        sourceRanges.map(range => Range(map.checkRangeAndGetDest(range.start), map.checkRangeAndGetDest(range.end)))
+        sourceRanges.map(range => Range(checkRangeAndCalcDest(map, range.start), checkRangeAndCalcDest(map, range.end)))
       }
       .headOption
     destRanges.getOrElse(List(sourceRange))
+  }
+
+  private def doOverlap(map: SourceToDestMap, sourceRange: Range): Boolean = {
+    !(map.sourceRange.end < sourceRange.start || sourceRange.end < map.sourceRange.start)
   }
 
   def splitIntoRanges(sourceRange: Range, mapRange: Range): List[Range] = {
@@ -135,5 +125,12 @@ object Task_5 {
     } else {
       List(sourceRange)
     }
+  }
+
+  private def checkRangeAndCalcDest(map: SourceToDestMap, source: Long): Long = {
+    if (isInRange(map, source)) {
+      val diff = source - map.sourceRange.start
+      map.destStart + diff
+    } else source
   }
 }
