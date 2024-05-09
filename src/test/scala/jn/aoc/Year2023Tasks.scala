@@ -112,4 +112,10 @@ class Year2023Tasks extends munit.FunSuite {
     val ranges = Task_5.splitIntoRanges(Range(10, 20), Range(30, 40))
     assertEquals(ranges, List(Range(10, 20)))
   }
+
+  test("task 6.1 example") {
+    val inputFile = "src/test/resources/2023/task_06_example.txt"
+    val result = Task_6.part_1(inputFile)
+    assertEquals(result, 288)
+  }
 }
