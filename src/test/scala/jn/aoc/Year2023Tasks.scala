@@ -118,4 +118,22 @@ class Year2023Tasks extends munit.FunSuite {
     val result = Task_6.part_1(inputFile)
     assertEquals(result, 288)
   }
+
+  test("task 6.1") {
+    val inputFile = "src/main/resources/2023/task_06_input.txt"
+    val result = Task_6.part_1(inputFile)
+    assertEquals(result, 227850)
+  }
+
+  test("task 6.2 example") {
+    val inputFile = "src/test/resources/2023/task_06_example.txt"
+    val result = Task_6.part_2(inputFile)
+    assertEquals(result, 71503)
+  }
+
+  test("task 6.2") {
+    val inputFile = "src/main/resources/2023/task_06_input.txt"
+    val result = Task_6.part_2(inputFile)
+    assertEquals(result, 42948149)
+  }
 }
